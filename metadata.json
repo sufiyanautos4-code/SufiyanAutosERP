@@ -1,0 +1,6 @@
+{
+  "name": "Evee Electric Bike Inventory Management",
+  "description": "Real-time stock inventory, unique chassis number tracking, and sales & installment management system for Evee Electric Bikes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
