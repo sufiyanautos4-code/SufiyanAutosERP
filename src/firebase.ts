@@ -3,12 +3,12 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyD3QFQ0ywi3oB27vluWOC4MX-YrhBxgO7g',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'sufiyanautos-4975a.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'sufiyanautos-4975a',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'sufiyanautos-4975a.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '69327235740',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:69327235740:web:57f834752f0bb2a8141b59'
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Validate Firebase configuration

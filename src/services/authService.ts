@@ -8,6 +8,7 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
+  GoogleAuthProvider,
   User as FirebaseUser
 } from 'firebase/auth';
 import {
@@ -79,6 +80,8 @@ export function getFriendlyAuthErrorMessage(error: any): string {
       return 'Firebase Auth configuration is missing. Please check your .env file.';
     case 'auth/operation-not-allowed':
       return 'Google sign-in is disabled in your Firebase project. Please enable "Google" provider in Firebase Console > Authentication > Sign-in method.';
+    case 'auth/internal-error':
+      return 'Google sign-in internal error. Please ensure Google Provider is enabled with a support email in Firebase Console (Authentication > Sign-in method > Google), or log in with email and password below.';
     case 'auth/invalid-api-key':
       return 'Invalid Firebase API key. Please check your .env file.';
     case 'auth/app-deleted':
@@ -92,6 +95,9 @@ export function getFriendlyAuthErrorMessage(error: any): string {
     default:
       if (message.includes('auth/invalid-action-code') || message.includes('invalid action') || message.includes('requested action is invalid')) {
         return 'Google Sign-In is not enabled yet in your Firebase project. Please enable Google in Firebase Console > Authentication > Sign-in method.';
+      }
+      if (message.includes('internal-error') || message.includes('internal error')) {
+        return 'Google sign-in internal error. Please make sure Google is enabled with a support email in Firebase Console > Authentication > Sign-in method.';
       }
       if (message.includes('unauthorized-domain') || message.includes('domain')) {
         return 'This domain is not authorized for authentication. Please add it to Authorized Domains in Firebase Console.';
@@ -253,7 +259,7 @@ export async function signInWithEmail(
 }
 
 /**
- * Sign in with Google (OAuth Popup with Redirect Fallback)
+ * Sign in with Google (OAuth Popup)
  */
 export async function signInWithGoogle(): Promise<{
   success: boolean;
@@ -261,21 +267,16 @@ export async function signInWithGoogle(): Promise<{
   error?: string;
 }> {
   try {
-    // Debug configuration
-    const debugInfo = debugFirebaseConfig();
-    if (!debugInfo.isValid) {
-      return { 
-        success: false, 
-        error: 'Firebase configuration is incomplete. Please check your .env file and restart the development server.' 
-      };
-    }
-
     clearLocalSessionUser();
     
-    // Try popup first
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
     try {
       console.log('Attempting Google Sign-In with popup...');
-      const cred = await signInWithPopup(auth, googleProvider);
+      const cred = await signInWithPopup(auth, provider);
       console.log('Google Sign-In popup successful');
       
       const userProfile = await getOrCreateUserProfile(cred.user, {
@@ -284,25 +285,21 @@ export async function signInWithGoogle(): Promise<{
       saveLocalSessionUser(userProfile);
       return { success: true, user: userProfile };
     } catch (popupError: any) {
-      // Log detailed error for debugging
-      logAuthError(popupError);
+      console.error('Google Sign-In popup error:', popupError);
       
-      // If popup fails, check if it's a blocker or user cancelled
-      if (popupError.code === 'auth/popup-blocked') {
-        throw popupError; // Re-throw to be caught by outer catch
-      }
       if (popupError.code === 'auth/popup-closed-by-user') {
-        return { success: false, error: 'Google sign-in was cancelled before completing.' };
+        return { success: false, error: 'Google sign-in popup was closed before completing.' };
       }
       if (popupError.code === 'auth/cancelled-popup-request') {
         return { success: false, error: 'Google sign-in was cancelled.' };
       }
-      // For other errors, re-throw to outer catch
+      if (popupError.code === 'auth/popup-blocked') {
+        return { success: false, error: 'Google sign-in popup was blocked by browser. Please allow popups.' };
+      }
       throw popupError;
     }
   } catch (err: any) {
     console.error('Google Sign-In Error:', err);
-    logAuthError(err);
     return { success: false, error: getFriendlyAuthErrorMessage(err) };
   }
 }
