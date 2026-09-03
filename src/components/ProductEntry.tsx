@@ -301,7 +301,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   );
 
   return (
-    <div className="w-full max-w-4xl 2xl:max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+    <div className="w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 sm:py-6 space-y-6">
       
       {/* Header */}
       <div className="bg-white border border-slate-200 p-4 sm:p-6 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -339,9 +339,13 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
 
       {/* Main Entry Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* LEFT COLUMN: Vehicle Specs & Core Identification (7 cols on lg+) */}
+          <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-7 space-y-6">
 
-        {/* SECTION 1: CORE VEHICLE IDENTIFICATION */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
+            {/* SECTION 1: CORE VEHICLE IDENTIFICATION */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-blue-600" />
@@ -516,474 +520,471 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: PRICING & COMMERCIAL VALUES */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-600" />
-              2. Commercial Pricing & Margins
-            </h2>
-            <div className="text-xs font-bold text-emerald-600">
-              Expected Margin: +{formatCurrency(profitMargin)} ({marginPercentage}%)
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Purchase Price */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Purchase Price (Wholesale Cost from Company) <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400">
-                  PKR
-                </span>
-                <input
-                  id="purchase-price-input"
-                  type="number"
-                  value={purchasePrice || ''}
-                  onChange={(e) => {
-                    setPurchasePrice(Math.max(0, Number(e.target.value)));
-                    if (errors.purchasePrice) setErrors(prev => ({ ...prev, purchasePrice: '' }));
-                  }}
-                  placeholder="0"
-                  className={`w-full bg-white border rounded-lg pl-12 pr-3 py-2 text-sm text-slate-900 font-mono font-bold focus:outline-none ${
-                    errors.purchasePrice ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-                  }`}
-                  min="0"
-                  step="500"
-                />
-              </div>
-              {errors.purchasePrice ? (
-                <p className="text-[11px] text-rose-500 mt-1">{errors.purchasePrice}</p>
-              ) : (
-                <p className="text-[10px] text-slate-500 mt-1">
-                  Wholesale inventory cost paid to manufacturing plant.
-                </p>
-              )}
-            </div>
-
-            {/* Selling Price */}
-            <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200">
-              <label className="block text-xs font-semibold text-emerald-800 mb-1.5">
-                Retail Selling Price (Sold to Customer) <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-emerald-700">
-                  PKR
-                </span>
-                <input
-                  id="selling-price-input"
-                  type="number"
-                  value={sellingPrice || ''}
-                  onChange={(e) => {
-                    const sp = Math.max(0, Number(e.target.value));
-                    setSellingPrice(sp);
-                    if (downPayment === 0 || downPayment > sp) {
-                      setDownPayment(Math.round(sp * 0.3));
-                    }
-                    if (errors.sellingPrice) setErrors(prev => ({ ...prev, sellingPrice: '' }));
-                  }}
-                  placeholder="0"
-                  className={`w-full bg-white border rounded-lg pl-12 pr-3 py-2 text-sm text-emerald-800 font-mono font-bold focus:outline-none ${
-                    errors.sellingPrice ? 'border-rose-500' : 'border-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                  }`}
-                  min="0"
-                  step="500"
-                />
-              </div>
-              {errors.sellingPrice ? (
-                <p className="text-[11px] text-rose-500 mt-1">{errors.sellingPrice}</p>
-              ) : (
-                <p className="text-[10px] text-emerald-700 mt-1">
-                  Official showroom retail sticker price.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 3: TECHNICAL & BATTERY SPECIFICATIONS */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" />
-              3. Powertrain, Motor & Battery Specifications
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Motor Power */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Motor Power (Watts)
-              </label>
-              <input
-                type="number"
-                value={motorPowerWatts || ''}
-                onChange={(e) => {
-                  const w = Number(e.target.value);
-                  setMotorPowerWatts(w);
-                  setEngineMotorDetails(`${w}W BLDC Motor, ${batteryCapacity}`);
-                }}
-                placeholder="1200"
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
-                step="100"
-              />
-            </div>
-
-            {/* Battery Capacity */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Battery Type & Chemistry
-              </label>
-              <input
-                type="text"
-                value={batteryCapacity}
-                onChange={(e) => {
-                  setBatteryCapacity(e.target.value);
-                  setEngineMotorDetails(`${motorPowerWatts}W BLDC Motor, ${e.target.value}`);
-                }}
-                placeholder="72V 30Ah Graphene"
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Top Speed */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Top Speed (km/h)
-              </label>
-              <input
-                type="number"
-                value={maxSpeedKmH || ''}
-                onChange={(e) => setMaxSpeedKmH(Number(e.target.value))}
-                placeholder="60"
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
-              />
-            </div>
-
-            {/* Range per Charge */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Range / Charge (km)
-              </label>
-              <input
-                type="number"
-                value={rangeKm || ''}
-                onChange={(e) => setRangeKm(Number(e.target.value))}
-                placeholder="75"
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Engine/Motor Summary Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Full Motor & Engine Description (Specs Stamp) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={engineMotorDetails}
-              onChange={(e) => {
-                setEngineMotorDetails(e.target.value);
-                if (errors.engineMotorDetails) setErrors(prev => ({ ...prev, engineMotorDetails: '' }));
-              }}
-              placeholder="e.g. 1200W Bosch High Efficiency Brushless DC Motor, 72V 30Ah Graphene Fast Charge Pack"
-              className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
-                errors.engineMotorDetails ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
-              }`}
-            />
-            {errors.engineMotorDetails && (
-              <p className="text-[11px] text-rose-500 mt-1">{errors.engineMotorDetails}</p>
-            )}
-          </div>
-        </div>
-
-        {/* SECTION 4: INVENTORY STATUS & DIRECT SALE OPTION */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <Bike className="w-4 h-4 text-slate-700" />
-              4. Registration Mode & Initial Status
-            </h2>
-            <span className="text-xs text-slate-500">
-              Add directly into In-Stock or record Immediate Sale
-            </span>
-          </div>
-
-          {/* Entry Mode Selector */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button
-              type="button"
-              onClick={() => setEntryMode('IN_STOCK')}
-              className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between gap-2 ${
-                entryMode === 'IN_STOCK'
-                  ? 'bg-blue-50 border-blue-600 ring-1 ring-blue-600'
-                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-blue-900">Add to In-Stock</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                  Ready for Sale
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Add to available showroom inventory for immediate browsing and future sales.
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setEntryMode('DIRECT_SALE_FULL')}
-              className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between gap-2 ${
-                entryMode === 'DIRECT_SALE_FULL'
-                  ? 'bg-emerald-50 border-emerald-600 ring-1 ring-emerald-600'
-                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-emerald-900">Direct Full Sale (Cash)</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  100% Paid
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Register as immediately sold with complete cash/bank payment and printable invoice.
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setEntryMode('DIRECT_SALE_INSTALLMENT')}
-              className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between gap-2 ${
-                entryMode === 'DIRECT_SALE_INSTALLMENT'
-                  ? 'bg-amber-50 border-amber-600 ring-1 ring-amber-600'
-                  : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-amber-900">Direct Installment Sale</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                  Financing Ledger
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Record sale with down payment and schedule remaining balance into monthly installments.
-              </p>
-            </button>
-          </div>
-
-          {/* CUSTOMER INFORMATION (If Direct Sale) */}
-          {entryMode !== 'IN_STOCK' && (
-            <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-blue-600" />
-                  Buyer Customer Information & Showroom Assignment
-                </span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                  Sale Invoice Generator
-                </span>
+            {/* SECTION 3: TECHNICAL & BATTERY SPECIFICATIONS */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  2. Powertrain, Motor & Battery Specifications
+                </h2>
               </div>
 
-              {/* Shop / Branch Selector */}
-              <div className="bg-white p-3 rounded-lg border border-slate-200">
-                <ShopSelector
-                  selectedShop={shopName}
-                  onSelectShop={(name) => setShopName(name)}
-                  required={false}
-                  label="Sales Shop / Branch Outlet Location"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Full Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                {/* Motor Power */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Buyer Full Name <span className="text-rose-500">*</span>
+                    Motor Power (Watts)
                   </label>
                   <input
-                    type="text"
-                    value={customerName}
+                    type="number"
+                    value={motorPowerWatts || ''}
                     onChange={(e) => {
-                      setCustomerName(e.target.value);
-                      if (errors.customerName) setErrors(prev => ({ ...prev, customerName: '' }));
+                      const w = Number(e.target.value);
+                      setMotorPowerWatts(w);
+                      setEngineMotorDetails(`${w}W BLDC Motor, ${batteryCapacity}`);
                     }}
-                    placeholder="e.g. Tariq Mehmood"
-                    className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
-                      errors.customerName ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
-                    }`}
+                    placeholder="1200"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
+                    step="100"
                   />
-                  {errors.customerName && (
-                    <p className="text-[11px] text-rose-500 mt-1">{errors.customerName}</p>
-                  )}
                 </div>
 
-                {/* Phone */}
+                {/* Battery Capacity */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Phone Number <span className="text-rose-500">*</span>
+                    Battery Chemistry
                   </label>
                   <input
                     type="text"
-                    value={customerPhone}
+                    value={batteryCapacity}
                     onChange={(e) => {
-                      setCustomerPhone(e.target.value);
-                      if (errors.customerPhone) setErrors(prev => ({ ...prev, customerPhone: '' }));
+                      setBatteryCapacity(e.target.value);
+                      setEngineMotorDetails(`${motorPowerWatts}W BLDC Motor, ${e.target.value}`);
                     }}
-                    placeholder="e.g. 0300-1234567"
-                    className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
-                      errors.customerPhone ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
-                    }`}
+                    placeholder="72V 30Ah Graphene"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
                   />
-                  {errors.customerPhone && (
-                    <p className="text-[11px] text-rose-500 mt-1">{errors.customerPhone}</p>
-                  )}
                 </div>
 
-                {/* CNIC */}
+                {/* Top Speed */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    CNIC / National Identity Card #
+                    Top Speed (km/h)
                   </label>
                   <input
-                    type="text"
-                    value={customerCnic}
-                    onChange={(e) => setCustomerCnic(e.target.value)}
-                    placeholder="e.g. 35202-8492019-1"
+                    type="number"
+                    value={maxSpeedKmH || ''}
+                    onChange={(e) => setMaxSpeedKmH(Number(e.target.value))}
+                    placeholder="60"
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
                   />
                 </div>
 
-                {/* City */}
+                {/* Range per Charge */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    City / Showroom Region
+                    Range (km)
                   </label>
                   <input
-                    type="text"
-                    value={customerCity}
-                    onChange={(e) => setCustomerCity(e.target.value)}
-                    placeholder="e.g. Lahore / Islamabad / Karachi"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
-                  />
-                </div>
-
-                {/* Address */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Delivery Address
-                  </label>
-                  <input
-                    type="text"
-                    value={customerAddress}
-                    onChange={(e) => setCustomerAddress(e.target.value)}
-                    placeholder="e.g. House #42, Street 8, Sector F-10"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
+                    type="number"
+                    value={rangeKm || ''}
+                    onChange={(e) => setRangeKm(Number(e.target.value))}
+                    placeholder="75"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              {/* INSTALLMENT FORM (If direct installment selected) */}
-              {entryMode === 'DIRECT_SALE_INSTALLMENT' && (
-                <div className="mt-4 pt-4 border-t border-slate-200 space-y-3 bg-amber-50 p-4 rounded-lg border border-amber-200">
+              {/* Engine/Motor Summary Description */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Full Motor & Engine Description (Specs Stamp) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={engineMotorDetails}
+                  onChange={(e) => {
+                    setEngineMotorDetails(e.target.value);
+                    if (errors.engineMotorDetails) setErrors(prev => ({ ...prev, engineMotorDetails: '' }));
+                  }}
+                  placeholder="e.g. 1200W Bosch High Efficiency Brushless DC Motor, 72V 30Ah Graphene Fast Charge Pack"
+                  className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
+                    errors.engineMotorDetails ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
+                  }`}
+                />
+                {errors.engineMotorDetails && (
+                  <p className="text-[11px] text-rose-500 mt-1">{errors.engineMotorDetails}</p>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: Pricing, Commercials, Registration & Save Action (5 cols on lg+) */}
+          <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-5 space-y-6">
+
+            {/* SECTION 2: PRICING & COMMERCIAL VALUES */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  3. Commercial Pricing & Margins
+                </h2>
+                <div className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                  Margin: +{formatCurrency(profitMargin)} ({marginPercentage}%)
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Purchase Price */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Purchase Cost <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400">
+                      PKR
+                    </span>
+                    <input
+                      id="purchase-price-input"
+                      type="number"
+                      value={purchasePrice || ''}
+                      onChange={(e) => {
+                        setPurchasePrice(Math.max(0, Number(e.target.value)));
+                        if (errors.purchasePrice) setErrors(prev => ({ ...prev, purchasePrice: '' }));
+                      }}
+                      placeholder="0"
+                      className={`w-full bg-white border rounded-lg pl-12 pr-3 py-2 text-sm text-slate-900 font-mono font-bold focus:outline-none ${
+                        errors.purchasePrice ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                      }`}
+                      min="0"
+                      step="500"
+                    />
+                  </div>
+                  {errors.purchasePrice ? (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.purchasePrice}</p>
+                  ) : (
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Wholesale inventory cost paid.
+                    </p>
+                  )}
+                </div>
+
+                {/* Selling Price */}
+                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200">
+                  <label className="block text-xs font-semibold text-emerald-800 mb-1.5">
+                    Retail Selling Price <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-emerald-700">
+                      PKR
+                    </span>
+                    <input
+                      id="selling-price-input"
+                      type="number"
+                      value={sellingPrice || ''}
+                      onChange={(e) => {
+                        const sp = Math.max(0, Number(e.target.value));
+                        setSellingPrice(sp);
+                        if (downPayment === 0 || downPayment > sp) {
+                          setDownPayment(Math.round(sp * 0.3));
+                        }
+                        if (errors.sellingPrice) setErrors(prev => ({ ...prev, sellingPrice: '' }));
+                      }}
+                      placeholder="0"
+                      className={`w-full bg-white border rounded-lg pl-12 pr-3 py-2 text-sm text-emerald-800 font-mono font-bold focus:outline-none ${
+                        errors.sellingPrice ? 'border-rose-500' : 'border-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                      }`}
+                      min="0"
+                      step="500"
+                    />
+                  </div>
+                  {errors.sellingPrice ? (
+                    <p className="text-[11px] text-rose-500 mt-1">{errors.sellingPrice}</p>
+                  ) : (
+                    <p className="text-[10px] text-emerald-700 mt-1">
+                      Official showroom retail sticker price.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 4: INVENTORY STATUS & DIRECT SALE OPTION */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Bike className="w-4 h-4 text-slate-700" />
+                  4. Registration Mode & Initial Status
+                </h2>
+              </div>
+
+              {/* Entry Mode Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setEntryMode('IN_STOCK')}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 ${
+                    entryMode === 'IN_STOCK'
+                      ? 'bg-blue-50 border-blue-500 text-blue-900 ring-2 ring-blue-500/20 shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5 text-amber-600" />
-                      Installment Calculation Matrix
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-700 font-bold">
-                      Total Sale Price: {formatCurrency(sellingPrice)}
-                    </span>
+                    <span className="font-bold text-xs">Add to In-Stock</span>
+                    {entryMode === 'IN_STOCK' && <Check className="w-3.5 h-3.5 text-blue-600" />}
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                        Down Payment Received (PKR)
-                      </label>
-                      <input
-                        type="number"
-                        value={downPayment || ''}
-                        onChange={(e) => setDownPayment(Math.max(0, Number(e.target.value)))}
-                        className="w-full bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs text-amber-800 font-mono font-bold focus:border-amber-500"
-                        step="1000"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                        Remaining Installment Balance
-                      </label>
-                      <div className="bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-slate-900">
-                        {formatCurrency(Math.max(0, sellingPrice - downPayment))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                        Tenure (Months)
-                      </label>
-                      <input
-                        type="number"
-                        value={installmentTenureMonths}
-                        onChange={(e) => setInstallmentTenureMonths(Math.max(1, Number(e.target.value)))}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:border-blue-500"
-                        min="1"
-                        max="36"
-                      />
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] text-slate-600">
-                    Scenario: Selling Price {formatCurrency(sellingPrice)} − Down payment {formatCurrency(downPayment)} = {formatCurrency(sellingPrice - downPayment)} to be paid in {installmentTenureMonths} monthly payments (~{formatCurrency(Math.round((sellingPrice - downPayment) / (installmentTenureMonths || 1)))}/mo).
+                  <p className="text-[10px] text-slate-500 leading-tight">
+                    Add to available showroom inventory.
                   </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEntryMode('DIRECT_SALE_FULL')}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 ${
+                    entryMode === 'DIRECT_SALE_FULL'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20 shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs">Direct Full Cash</span>
+                    {entryMode === 'DIRECT_SALE_FULL' && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-tight">
+                    Record as immediate cash sale.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEntryMode('DIRECT_SALE_INSTALLMENT')}
+                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 ${
+                    entryMode === 'DIRECT_SALE_INSTALLMENT'
+                      ? 'bg-amber-50 border-amber-500 text-amber-900 ring-2 ring-amber-500/20 shadow-sm'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs">Direct Installment</span>
+                    {entryMode === 'DIRECT_SALE_INSTALLMENT' && <Check className="w-3.5 h-3.5 text-amber-600" />}
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-tight">
+                    Hire-purchase installment lease.
+                  </p>
+                </button>
+              </div>
+
+              {/* DIRECT SALE CUSTOMER FORM */}
+              {entryMode !== 'IN_STOCK' && (
+                <div className="mt-4 pt-4 border-t border-slate-100 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-blue-600" />
+                      Buyer & Customer Registration
+                    </h3>
+                  </div>
+
+                  {/* Shop / Branch Selection */}
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Sale Showroom / Shop Location
+                    </label>
+                    <ShopSelector
+                      value={shopName}
+                      onChange={setShopName}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Full Name */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Buyer Full Name <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => {
+                          setCustomerName(e.target.value);
+                          if (errors.customerName) setErrors(prev => ({ ...prev, customerName: '' }));
+                        }}
+                        placeholder="e.g. Tariq Mehmood"
+                        className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
+                          errors.customerName ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
+                        }`}
+                      />
+                      {errors.customerName && (
+                        <p className="text-[11px] text-rose-500 mt-1">{errors.customerName}</p>
+                      )}
+                    </div>
+
+                    {/* Phone */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Phone Number <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={customerPhone}
+                        onChange={(e) => {
+                          setCustomerPhone(e.target.value);
+                          if (errors.customerPhone) setErrors(prev => ({ ...prev, customerPhone: '' }));
+                        }}
+                        placeholder="e.g. 0300-1234567"
+                        className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
+                          errors.customerPhone ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
+                        }`}
+                      />
+                      {errors.customerPhone && (
+                        <p className="text-[11px] text-rose-500 mt-1">{errors.customerPhone}</p>
+                      )}
+                    </div>
+
+                    {/* CNIC */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        CNIC / National Identity Card #
+                      </label>
+                      <input
+                        type="text"
+                        value={customerCnic}
+                        onChange={(e) => setCustomerCnic(e.target.value)}
+                        placeholder="e.g. 35202-8492019-1"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* City */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        City / Showroom Region
+                      </label>
+                      <input
+                        type="text"
+                        value={customerCity}
+                        onChange={(e) => setCustomerCity(e.target.value)}
+                        placeholder="e.g. Lahore / Islamabad / Karachi"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* Address */}
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Delivery Address
+                      </label>
+                      <input
+                        type="text"
+                        value={customerAddress}
+                        onChange={(e) => setCustomerAddress(e.target.value)}
+                        placeholder="e.g. House #42, Street 8, Sector F-10"
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* INSTALLMENT FORM (If direct installment selected) */}
+                  {entryMode === 'DIRECT_SALE_INSTALLMENT' && (
+                    <div className="mt-3 pt-3 border-t border-amber-200 space-y-3 bg-amber-50 p-4 rounded-xl border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5 text-amber-600" />
+                          Installment Calculation Matrix
+                        </span>
+                        <span className="text-[11px] font-mono text-slate-700 font-bold">
+                          Total Price: {formatCurrency(sellingPrice)}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Down Payment (PKR)
+                          </label>
+                          <input
+                            type="number"
+                            value={downPayment || ''}
+                            onChange={(e) => setDownPayment(Math.max(0, Number(e.target.value)))}
+                            className="w-full bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs text-amber-800 font-mono font-bold focus:border-amber-500"
+                            step="1000"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Balance Left
+                          </label>
+                          <div className="bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-slate-900">
+                            {formatCurrency(Math.max(0, sellingPrice - downPayment))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Tenure (Months)
+                          </label>
+                          <input
+                            type="number"
+                            value={installmentTenureMonths}
+                            onChange={(e) => setInstallmentTenureMonths(Math.max(1, Number(e.target.value)))}
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:border-blue-500"
+                            min="1"
+                            max="36"
+                          />
+                        </div>
+                      </div>
+
+                      <p className="text-[10px] text-slate-600">
+                        Monthly estimate: ~{formatCurrency(Math.round((sellingPrice - downPayment) / (installmentTenureMonths || 1)))}/month for {installmentTenureMonths} months.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
 
-        {/* SECTION 5: NOTES & ACTION BUTTONS */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Internal Vehicle Notes / Comments (Optional)
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Received from Karachi factory, tested OK, charger & 2 remote keys in box..."
-              rows={2}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-xs text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            />
+            {/* SECTION 5: NOTES & ACTION BUTTONS */}
+            <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Internal Vehicle Notes / Comments (Optional)
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Received from Karachi factory, tested OK, charger & 2 remote keys in box..."
+                  rows={2}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-xs text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                {editingBike && onCancelEdit && (
+                  <button
+                    type="button"
+                    onClick={onCancelEdit}
+                    className="px-5 py-2.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition border border-slate-300"
+                  >
+                    Cancel
+                  </button>
+                )}
+
+                <button
+                  id="save-evee-bike-btn"
+                  type="submit"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow-sm transition active:scale-95"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{editingBike ? 'Update Vehicle Record' : 'Save & Register Evee Bike'}</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            {editingBike && onCancelEdit && (
-              <button
-                type="button"
-                onClick={onCancelEdit}
-                className="px-5 py-2.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition border border-slate-300"
-              >
-                Cancel
-              </button>
-            )}
-
-            <button
-              id="save-evee-bike-btn"
-              type="submit"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow-sm transition active:scale-95"
-            >
-              <Save className="w-4 h-4" />
-              <span>{editingBike ? 'Update Vehicle Record' : 'Save & Register Evee Bike'}</span>
-            </button>
-          </div>
         </div>
-
       </form>
     </div>
   );

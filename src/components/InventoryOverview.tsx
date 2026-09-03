@@ -96,7 +96,7 @@ export const InventoryOverview: React.FC<InventoryOverviewProps> = ({
   });
 
   return (
-    <div className="space-y-6 sm:space-y-8 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="space-y-6 sm:space-y-8 w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 sm:py-6">
       
       {/* Top Header & Context Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-4 sm:p-5 rounded-xl shadow-sm">
@@ -226,7 +226,7 @@ export const InventoryOverview: React.FC<InventoryOverviewProps> = ({
         </div>
 
         {/* Model Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-6 gap-4">
           {modelSummaries.map((summary) => {
             const stockPct = summary.totalAcquired > 0 
               ? Math.round((summary.inStockCount / summary.totalAcquired) * 100) 

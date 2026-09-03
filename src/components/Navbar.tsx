@@ -62,8 +62,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 text-slate-100 shadow-md">
       {/* Top Banner / Brand Header */}
-      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4">
+      <div className="w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4 lg:gap-6">
           
           {/* Logo & Brand */}
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => setActiveTab('inventory')}>
@@ -84,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Global Search */}
-          <div className="hidden md:flex flex-1 max-w-md 2xl:max-w-xl relative">
+          <div className="hidden md:flex flex-1 max-w-md lg:max-w-xl xl:max-w-2xl 2xl:max-w-3xl relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               id="navbar-search-input"

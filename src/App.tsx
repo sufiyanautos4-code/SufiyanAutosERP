@@ -411,7 +411,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 px-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-semibold text-slate-700">Sufiyan Autos ERP • Firebase Cloud & Firestore Live DB</span>

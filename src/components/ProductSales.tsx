@@ -108,7 +108,7 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
   });
 
   return (
-    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+    <div className="w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 sm:py-6 space-y-6">
 
       {/* Top Banner */}
       <div className="bg-white border border-slate-200 p-4 sm:p-6 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
