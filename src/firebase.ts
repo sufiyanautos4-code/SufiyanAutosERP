@@ -1,5 +1,11 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  setPersistence, 
+  browserLocalPersistence, 
+  indexedDBLocalPersistence 
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -14,8 +20,24 @@ const firebaseConfig = {
 // Initialize Firebase safely
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firebase Authentication
+// Initialize Firebase Authentication with permanent local storage persistence
 export const auth = getAuth(app);
+
+// Set persistence once during initialization - this ensures auth state persists across browser sessions
+(async () => {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    console.log('Firebase Auth persistence set to browserLocalPersistence');
+  } catch (err) {
+    console.warn('browserLocalPersistence failed, attempting indexedDBLocalPersistence:', err);
+    try {
+      await setPersistence(auth, indexedDBLocalPersistence);
+      console.log('Firebase Auth persistence set to indexedDBLocalPersistence');
+    } catch (err2) {
+      console.error('All persistence methods failed:', err2);
+    }
+  }
+})();
 
 // Initialize Cloud Firestore
 export const db = getFirestore(app);

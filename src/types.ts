@@ -23,6 +23,11 @@ export interface CustomerDetails {
   address?: string;
   city?: string;
   emergencyContact?: string;
+  fatherOrHusbandName?: string;
+  guarantor1Name?: string;
+  guarantor1Phone?: string;
+  guarantor2Name?: string;
+  guarantor2Phone?: string;
 }
 
 export interface InstallmentPlan {

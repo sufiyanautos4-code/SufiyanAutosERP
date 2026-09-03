@@ -9,6 +9,8 @@ import {
   updateProfile,
   onAuthStateChanged,
   GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
   User as FirebaseUser
 } from 'firebase/auth';
 import {
@@ -214,9 +216,6 @@ export async function signUpWithEmail(data: {
   phone?: string;
 }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
   try {
-    // Clear old session cache immediately so old account data is never leaked
-    clearLocalSessionUser();
-
     const cred = await createUserWithEmailAndPassword(auth, data.email.trim(), data.password);
     
     // Update Firebase Auth displayName
@@ -248,7 +247,6 @@ export async function signInWithEmail(
   password: string
 ): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
   try {
-    clearLocalSessionUser();
     const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
     const userProfile = await getOrCreateUserProfile(cred.user);
     saveLocalSessionUser(userProfile);
@@ -267,8 +265,6 @@ export async function signInWithGoogle(): Promise<{
   error?: string;
 }> {
   try {
-    clearLocalSessionUser();
-    
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
       prompt: 'select_account'
@@ -367,6 +363,27 @@ export function subscribeAuthState(
   onUserChanged: (user: AuthUser | null, loading: boolean) => void
 ): () => void {
   let unsubscribeDoc: (() => void) | null = null;
+  let isAuthReady = false;
+
+  // Immediately notify caller if a local session is stored in localStorage so UI is instantaneous
+  const cachedUser = getLocalSessionUser();
+  if (cachedUser) {
+    onUserChanged(cachedUser, false);
+  }
+
+  // Ensure Firebase persistence readiness is verified
+  if (typeof auth.authStateReady === 'function') {
+    auth.authStateReady().then(() => {
+      isAuthReady = true;
+      if (!auth.currentUser && !getLocalSessionUser()) {
+        onUserChanged(null, false);
+      }
+    }).catch(() => {
+      isAuthReady = true;
+    });
+  } else {
+    isAuthReady = true;
+  }
 
   const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
     if (unsubscribeDoc) {
@@ -375,13 +392,10 @@ export function subscribeAuthState(
     }
 
     if (firebaseUser) {
-      // First try to load fast from local cache only if the UID matches
+      // Refresh or initialize cached profile immediately
       const cached = getLocalSessionUser();
       if (cached && cached.id === firebaseUser.uid) {
         onUserChanged(cached, false);
-      } else {
-        // Clear mismatched stale session immediately
-        clearLocalSessionUser();
       }
 
       // Real-time listener on user doc in Firestore
@@ -413,11 +427,13 @@ export function subscribeAuthState(
             }).then((p) => {
               saveLocalSessionUser(p);
               onUserChanged(p, false);
+            }).catch(err => {
+              console.warn('Profile doc init error:', err);
             });
           }
         },
         async (error) => {
-          console.warn('User doc listener error:', error);
+          console.warn('User doc listener fallback:', error);
           const fallback = await getOrCreateUserProfile(firebaseUser, {
             name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User')
           });
@@ -426,8 +442,11 @@ export function subscribeAuthState(
         }
       );
     } else {
-      clearLocalSessionUser();
-      onUserChanged(null, false);
+      // Only clear and notify null if auth is initialized or there is no stored user
+      if (isAuthReady || !cachedUser) {
+        clearLocalSessionUser();
+        onUserChanged(null, false);
+      }
     }
   });
 
