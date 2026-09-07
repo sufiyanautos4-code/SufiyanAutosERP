@@ -27,13 +27,17 @@ const corsHeaders = {
 export default async function handler(req, res) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).json({});
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
   }
 
-  // Set CORS headers
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
+  // Set CORS headers for all responses
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Content-Type', 'application/json');
 
   const { action } = req.query;
   const body = req.body;
@@ -165,7 +169,12 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ 
         success: true,
-        message: 'Verification code sent to your email'
+        message: 'Verification code sent to your email',
+        debug: {
+          emailSent: true,
+          emailId: data.id,
+          timestamp: new Date().toISOString()
+        }
       });
     }
 
