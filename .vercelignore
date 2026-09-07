@@ -1,7 +1,32 @@
-node_modules
+# Environment files (sensitive)
+.env
 .env.local
 .env.*.local
+
+# Dependencies
+node_modules
+
+# Documentation (not needed in production)
+*.md
+!README.md
+
+# Development server
 server.js
-dist
+
+# Git
 .git
-*.log
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
