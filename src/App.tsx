@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { StockInventory } from './components/StockInventory';
-import { InventoryOverview } from './components/InventoryOverview';
+import { StockLedger } from './components/StockLedger';
+import { ModelTypes } from './components/ModelTypes';
 import { ProductEntry } from './components/ProductEntry';
 import { ProductDetail } from './components/ProductDetail';
 import { ProductSales } from './components/ProductSales';
@@ -48,6 +49,7 @@ export default function App() {
   // Inventory state initialized with cached bikes for the current logged-in user
   const [bikes, setBikes] = useState<EveeBike[]>(() => currentUser ? getCachedBikes(currentUser.id) : []);
   const [activeTab, setActiveTab] = useState<ActiveTab>('stock');
+  const [modelFilter, setModelFilter] = useState<string>('ALL');
 
   // Selected Bike for Detail / Inspection
   const [selectedBikeId, setSelectedBikeId] = useState<string | null>(null);
@@ -312,20 +314,24 @@ export default function App() {
           />
         )}
 
-        {/* TAB 2: Fleet Operations & Hub Dashboard */}
-        {activeTab === 'inventory' && (
-          <InventoryOverview
+        {/* TAB 2: Stock Ledger - Overall Purchase/Sales/Stock Calculations */}
+        {activeTab === 'ledger' && (
+          <StockLedger bikes={bikes} />
+        )}
+
+        {/* TAB 3: Model Types - Stock Breakdown by Bike Types & Variants */}
+        {activeTab === 'models' && (
+          <ModelTypes
             bikes={bikes}
-            onSelectBike={handleSelectBikeToView}
             onNewBike={handleNewBikeTab}
-            onSellBike={(bike) => handleOpenSaleModal(bike)}
-            onReceivePayment={(bike) => handleOpenReceivePaymentModal(bike)}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
+            onFilterByModel={(model) => {
+              setModelFilter(model);
+              setActiveTab('stock');
+            }}
           />
         )}
 
-        {/* TAB 3: Product Entry Page (Chassis & Specs Registry) */}
+        {/* TAB 4: Product Entry Page (Chassis & Specs Registry) */}
         {activeTab === 'entry' && (
           <ProductEntry
             existingBikes={bikes}
@@ -335,7 +341,7 @@ export default function App() {
           />
         )}
 
-        {/* TAB 4: Product Detail Page & Master Inspector */}
+        {/* TAB 5: Product Detail Page & Master Inspector */}
         {activeTab === 'detail' && (
           <ProductDetail
             bikes={bikes}
@@ -351,7 +357,7 @@ export default function App() {
           />
         )}
 
-        {/* TAB 5: Product Sales Page (Full Payment & Installments) */}
+        {/* TAB 6: Product Sales Page (Full Payment & Installments) */}
         {activeTab === 'sales' && (
           <ProductSales
             bikes={bikes}
@@ -414,10 +420,10 @@ export default function App() {
         <div className="w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-semibold text-slate-700">Sufiyan Autos ERP • Firebase Cloud & Firestore Live DB</span>
+            <span className="font-semibold text-slate-700">Sufiyan Autos ERP • All rights reserved</span>
           </div>
           <p className="text-[11px] text-slate-500">
-            Real-time multi-model stock balances • Unique Chassis/VIN registry • Hire-Purchase Installment Engine
+            Inventory & Sales ERP for Evee Electric Bikes • Developed by MarqNetworks
           </p>
         </div>
       </footer>

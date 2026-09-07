@@ -55,8 +55,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   const [rangeKm, setRangeKm] = useState<number>(75);
   const [notes, setNotes] = useState<string>('');
 
-  // Initial Status / Direct Sale Option
-  const [entryMode, setEntryMode] = useState<'IN_STOCK' | 'DIRECT_SALE_FULL' | 'DIRECT_SALE_INSTALLMENT'>('IN_STOCK');
+  // Initial Status - Only IN_STOCK mode (no state needed, always IN_STOCK)
   
   // Customer Details (if sold directly)
   const [customerName, setCustomerName] = useState<string>('');
@@ -92,25 +91,6 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
 
       if (editingBike.shopName) {
         setShopName(editingBike.shopName);
-      }
-
-      if (editingBike.status === 'SOLD_FULL') {
-        setEntryMode('DIRECT_SALE_FULL');
-        setCustomerName(editingBike.customer?.fullName || '');
-        setCustomerPhone(editingBike.customer?.phone || '');
-        setCustomerCnic(editingBike.customer?.cnicOrId || '');
-        setCustomerAddress(editingBike.customer?.address || '');
-        setCustomerCity(editingBike.customer?.city || '');
-      } else if (editingBike.status === 'SOLD_INSTALLMENT') {
-        setEntryMode('DIRECT_SALE_INSTALLMENT');
-        setCustomerName(editingBike.customer?.fullName || '');
-        setCustomerPhone(editingBike.customer?.phone || '');
-        setCustomerCnic(editingBike.customer?.cnicOrId || '');
-        setCustomerAddress(editingBike.customer?.address || '');
-        setCustomerCity(editingBike.customer?.city || '');
-        setDownPayment(editingBike.installmentPlan?.downPayment || 0);
-      } else {
-        setEntryMode('IN_STOCK');
       }
     } else {
       // If brand new entry and no chassis yet
@@ -165,24 +145,6 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       newErrors.engineMotorDetails = 'Engine / Motor specifications are required';
     }
 
-    // Customer Validation if sold
-    if (entryMode !== 'IN_STOCK') {
-      if (!customerName.trim()) {
-        newErrors.customerName = 'Customer Name is required for sold vehicles';
-      }
-      if (!customerPhone.trim()) {
-        newErrors.customerPhone = 'Customer Phone is required';
-      }
-
-      if (entryMode === 'DIRECT_SALE_INSTALLMENT') {
-        if (downPayment <= 0) {
-          newErrors.downPayment = 'Down payment must be greater than 0';
-        } else if (downPayment >= sellingPrice) {
-          newErrors.downPayment = 'Down payment cannot be equal to or greater than selling price (use Full Payment)';
-        }
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -195,12 +157,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
 
     const finalColor = customColor.trim() ? customColor.trim() : color;
     const finalChassis = chassisNumber.trim().toUpperCase();
-    const finalStatus: VehicleStatus = 
-      entryMode === 'DIRECT_SALE_FULL' 
-        ? 'SOLD_FULL' 
-        : entryMode === 'DIRECT_SALE_INSTALLMENT' 
-        ? 'SOLD_INSTALLMENT' 
-        : 'IN_STOCK';
+    const finalStatus: VehicleStatus = 'IN_STOCK'; // Always IN_STOCK
 
     const bikeId = editingBike?.id || `evee-${Date.now()}`;
     const today = new Date().toISOString().slice(0, 10);
@@ -223,49 +180,8 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       notes: notes.trim(),
     };
 
-    // If Direct Sale, attach Customer & Invoice
-    if (entryMode !== 'IN_STOCK') {
-      if (shopName.trim()) {
-        addShopToStorage(shopName.trim());
-      }
-      bikeData.saleDate = editingBike?.saleDate || today;
-      bikeData.saleInvoiceNumber = editingBike?.saleInvoiceNumber || generateInvoiceNumber();
-      bikeData.actualSoldPrice = Number(sellingPrice);
-      bikeData.shopName = shopName.trim();
-      bikeData.saleShopName = shopName.trim();
-      bikeData.customer = {
-        fullName: customerName.trim(),
-        phone: customerPhone.trim(),
-        cnicOrId: customerCnic.trim(),
-        address: customerAddress.trim(),
-        city: customerCity.trim(),
-        emergencyContact: emergencyContact.trim(),
-      };
-
-      if (entryMode === 'DIRECT_SALE_FULL') {
-        bikeData.saleType = 'FULL_PAYMENT';
-      } else if (entryMode === 'DIRECT_SALE_INSTALLMENT') {
-        bikeData.saleType = 'INSTALLMENT';
-        const dp = Number(downPayment);
-        const remainingInstBalance = Number(sellingPrice) - dp;
-        
-        bikeData.installmentPlan = {
-          totalSalePrice: Number(sellingPrice),
-          downPayment: dp,
-          installmentBalance: remainingInstBalance,
-          totalPaid: dp,
-          remainingBalance: remainingInstBalance,
-          monthlyInstallmentEstimate: Math.round(remainingInstBalance / (installmentTenureMonths || 5)),
-          totalTenureMonths: Number(installmentTenureMonths) || 5,
-          startDate: editingBike?.installmentPlan?.startDate || today,
-          status: remainingInstBalance <= 0 ? 'PAID' : 'ACTIVE',
-          payments: editingBike?.installmentPlan?.payments || [],
-        };
-      }
-    }
-
     onSaveBike(bikeData);
-    setSuccessMessage(`Vehicle chassis "${finalChassis}" (${modelName}) successfully ${editingBike ? 'updated' : 'registered in inventory'}!`);
+    setSuccessMessage(`Vehicle chassis "${finalChassis}" (${modelName}) successfully ${editingBike ? 'updated' : 'added to stock inventory'}!`);
 
     if (!editingBike) {
       // Reset for next bike entry
@@ -276,7 +192,6 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       setCustomerCnic('');
       setCustomerAddress('');
       setEmergencyContact('');
-      setEntryMode('IN_STOCK');
     }
 
     setTimeout(() => {
@@ -424,14 +339,14 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                 <span>Chassis Number / Frame VIN</span>
                 <span className="text-rose-500">*</span>
               </label>
-              <button
+              {/* <button
                 type="button"
                 onClick={handleGenerateChassis}
                 className="text-[11px] text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold"
               >
                 <Sparkles className="w-3 h-3" />
                 Generate Unique VIN
-              </button>
+              </button> */}
             </div>
             <div className="relative">
               <input
@@ -710,7 +625,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
               </div>
             </div>
 
-            {/* SECTION 4: INVENTORY STATUS & DIRECT SALE OPTION */}
+            {/* SECTION 4: INVENTORY STATUS - ADD TO STOCK ONLY */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -719,230 +634,20 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                 </h2>
               </div>
 
-              {/* Entry Mode Selector */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setEntryMode('IN_STOCK')}
-                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 ${
-                    entryMode === 'IN_STOCK'
-                      ? 'bg-blue-50 border-blue-500 text-blue-900 ring-2 ring-blue-500/20 shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs">Add to In-Stock</span>
-                    {entryMode === 'IN_STOCK' && <Check className="w-3.5 h-3.5 text-blue-600" />}
+              {/* Entry Mode Display - Stock Only */}
+              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-100 border border-blue-200">
+                    <Check className="w-5 h-5 text-blue-600" />
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    Add to available showroom inventory.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setEntryMode('DIRECT_SALE_FULL')}
-                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 ${
-                    entryMode === 'DIRECT_SALE_FULL'
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20 shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs">Direct Full Cash</span>
-                    {entryMode === 'DIRECT_SALE_FULL' && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  <div>
+                    <span className="font-bold text-sm text-blue-900 block">Add to In-Stock Inventory</span>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      This bike will be added to available showroom inventory. To sell, use the Sales page after registration.
+                    </p>
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    Record as immediate cash sale.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setEntryMode('DIRECT_SALE_INSTALLMENT')}
-                  className={`p-3 rounded-xl border text-left transition flex flex-col justify-between gap-1.5 ${
-                    entryMode === 'DIRECT_SALE_INSTALLMENT'
-                      ? 'bg-amber-50 border-amber-500 text-amber-900 ring-2 ring-amber-500/20 shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs">Direct Installment</span>
-                    {entryMode === 'DIRECT_SALE_INSTALLMENT' && <Check className="w-3.5 h-3.5 text-amber-600" />}
-                  </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    Hire-purchase installment lease.
-                  </p>
-                </button>
-              </div>
-
-              {/* DIRECT SALE CUSTOMER FORM */}
-              {entryMode !== 'IN_STOCK' && (
-                <div className="mt-4 pt-4 border-t border-slate-100 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-blue-600" />
-                      Buyer & Customer Registration
-                    </h3>
-                  </div>
-
-                  {/* Shop / Branch Selection */}
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Sale Showroom / Shop Location
-                    </label>
-                    <ShopSelector
-                      value={shopName}
-                      onChange={setShopName}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Full Name */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Buyer Full Name <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={customerName}
-                        onChange={(e) => {
-                          setCustomerName(e.target.value);
-                          if (errors.customerName) setErrors(prev => ({ ...prev, customerName: '' }));
-                        }}
-                        placeholder="e.g. Tariq Mehmood"
-                        className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
-                          errors.customerName ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
-                        }`}
-                      />
-                      {errors.customerName && (
-                        <p className="text-[11px] text-rose-500 mt-1">{errors.customerName}</p>
-                      )}
-                    </div>
-
-                    {/* Phone */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Phone Number <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={customerPhone}
-                        onChange={(e) => {
-                          setCustomerPhone(e.target.value);
-                          if (errors.customerPhone) setErrors(prev => ({ ...prev, customerPhone: '' }));
-                        }}
-                        placeholder="e.g. 0300-1234567"
-                        className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none ${
-                          errors.customerPhone ? 'border-rose-500' : 'border-slate-300 focus:border-blue-500'
-                        }`}
-                      />
-                      {errors.customerPhone && (
-                        <p className="text-[11px] text-rose-500 mt-1">{errors.customerPhone}</p>
-                      )}
-                    </div>
-
-                    {/* CNIC */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        CNIC / National Identity Card #
-                      </label>
-                      <input
-                        type="text"
-                        value={customerCnic}
-                        onChange={(e) => setCustomerCnic(e.target.value)}
-                        placeholder="e.g. 35202-8492019-1"
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* City */}
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        City / Showroom Region
-                      </label>
-                      <input
-                        type="text"
-                        value={customerCity}
-                        onChange={(e) => setCustomerCity(e.target.value)}
-                        placeholder="e.g. Lahore / Islamabad / Karachi"
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* Address */}
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Delivery Address
-                      </label>
-                      <input
-                        type="text"
-                        value={customerAddress}
-                        onChange={(e) => setCustomerAddress(e.target.value)}
-                        placeholder="e.g. House #42, Street 8, Sector F-10"
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* INSTALLMENT FORM (If direct installment selected) */}
-                  {entryMode === 'DIRECT_SALE_INSTALLMENT' && (
-                    <div className="mt-3 pt-3 border-t border-amber-200 space-y-3 bg-amber-50 p-4 rounded-xl border">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                          <CreditCard className="w-3.5 h-3.5 text-amber-600" />
-                          Installment Calculation Matrix
-                        </span>
-                        <span className="text-[11px] font-mono text-slate-700 font-bold">
-                          Total Price: {formatCurrency(sellingPrice)}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            Down Payment (PKR)
-                          </label>
-                          <input
-                            type="number"
-                            value={downPayment || ''}
-                            onChange={(e) => setDownPayment(Math.max(0, Number(e.target.value)))}
-                            className="w-full bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs text-amber-800 font-mono font-bold focus:border-amber-500"
-                            step="1000"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            Balance Left
-                          </label>
-                          <div className="bg-white border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-slate-900">
-                            {formatCurrency(Math.max(0, sellingPrice - downPayment))}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                            Tenure (Months)
-                          </label>
-                          <input
-                            type="number"
-                            value={installmentTenureMonths}
-                            onChange={(e) => setInstallmentTenureMonths(Math.max(1, Number(e.target.value)))}
-                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:border-blue-500"
-                            min="1"
-                            max="36"
-                          />
-                        </div>
-                      </div>
-
-                      <p className="text-[10px] text-slate-600">
-                        Monthly estimate: ~{formatCurrency(Math.round((sellingPrice - downPayment) / (installmentTenureMonths || 1)))}/month for {installmentTenureMonths} months.
-                      </p>
-                    </div>
-                  )}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* SECTION 5: NOTES & ACTION BUTTONS */}

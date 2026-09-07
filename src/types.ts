@@ -104,6 +104,7 @@ export interface AuthUser {
   shopLocation?: string;
   avatarBg?: string;
   photoURL?: string;
+  authProvider?: 'email' | 'google'; // Track how user signed up
   createdAt: string;
   lastLoginAt?: string;
 }
@@ -155,5 +156,5 @@ export interface PaymentTransactionRecord {
   createdAt: string;
 }
 
-export type ActiveTab = 'stock' | 'inventory' | 'entry' | 'detail' | 'sales';
+export type ActiveTab = 'stock' | 'ledger' | 'models' | 'entry' | 'detail' | 'sales';
 

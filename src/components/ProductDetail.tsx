@@ -74,6 +74,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'IN_STOCK' | 'SOLD_FULL' | 'SOLD_INSTALLMENT'>('ALL');
   const [modelFilter, setModelFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'NEWEST' | 'MODEL_ASC' | 'PRICE_DESC' | 'PRICE_ASC'>('NEWEST');
+  
+  // Pagination state for handling lakhs of records
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(50); // Optimized: Default 50 rows per page
 
   // Track previous selectedBikeId to detect external navigation
   const [prevSelectedBikeId, setPrevSelectedBikeId] = useState<string | null>(selectedBikeId || null);
@@ -133,6 +137,19 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
       return 0;
     });
   }, [bikes, statusFilter, modelFilter, searchQuery, sortBy]);
+
+  // Pagination calculations - Optimized for lakhs of records
+  const totalPages = Math.ceil(filteredBikes.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedBikes = useMemo(() => {
+    return filteredBikes.slice(startIndex, endIndex);
+  }, [filteredBikes, startIndex, endIndex]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, modelFilter, searchQuery, sortBy]);
 
   const handleCopyChassis = () => {
     if (activeBike?.chassisNumber) {
@@ -304,16 +321,37 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
           </div>
 
-          {/* Product List Table / Directory */}
+          {/* Product List Table / Directory - OPTIMIZED FOR LAKHS OF RECORDS */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <ListFilter className="w-3.5 h-3.5 text-blue-600" />
-                Products List ({filteredBikes.length} {filteredBikes.length === 1 ? 'Record' : 'Records'})
+            <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <ListFilter className="w-3 h-3 text-blue-600" />
+                Products List ({filteredBikes.length.toLocaleString()} {filteredBikes.length === 1 ? 'Record' : 'Records'})
+                {filteredBikes.length !== bikes.length && (
+                  <span className="text-[9px] text-amber-600 font-normal normal-case">
+                    • Filtered from {bikes.length.toLocaleString()} total
+                  </span>
+                )}
               </span>
-              <span className="text-[11px] text-slate-500">
-                Click any row or "View Specs" to open detailed specs sheet
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-500">
+                  Showing {startIndex + 1}-{Math.min(endIndex, filteredBikes.length)} of {filteredBikes.length.toLocaleString()}
+                </span>
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="text-[10px] px-2 py-1 border border-slate-300 rounded bg-white font-semibold"
+                >
+                  <option value={25}>25/page</option>
+                  <option value={50}>50/page</option>
+                  <option value={100}>100/page</option>
+                  <option value={200}>200/page</option>
+                  <option value={500}>500/page</option>
+                </select>
+              </div>
             </div>
 
             {filteredBikes.length === 0 ? (
@@ -333,163 +371,230 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto w-full">
-                <table className="w-full text-left text-xs text-slate-700 min-w-[950px]">
-                  <thead className="bg-slate-100/75 text-slate-600 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
-                    <tr>
-                      <th className="py-3 px-4">Vehicle Model & Variant</th>
-                      <th className="py-3 px-3">Chassis Number (VIN)</th>
-                      <th className="py-3 px-3">Color</th>
-                      <th className="py-3 px-3">Powertrain & Specs</th>
-                      <th className="py-3 px-3">Cost / Retail Price</th>
-                      <th className="py-3 px-3">Status / Assignment</th>
-                      <th className="py-3 px-4 text-right">Inspect Detail</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredBikes.map((bike) => {
-                      const itemProfit = bike.sellingPrice - bike.purchasePrice;
-                      return (
-                        <tr
-                          key={bike.id}
-                          onClick={() => handleOpenBikeDetail(bike)}
-                          className="hover:bg-blue-50/60 cursor-pointer transition group"
-                        >
-                          {/* Model & Variant */}
-                          <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-blue-100/70 border border-blue-200 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
-                                <Bike className="w-4 h-4" />
+              <>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left text-[10px] text-slate-700 min-w-[950px]">
+                    <thead className="bg-slate-100/75 text-slate-600 uppercase text-[9px] font-bold tracking-wider border-b border-slate-200 sticky top-0 z-10">
+                      <tr>
+                        <th className="py-2 px-2.5">Vehicle Model & Variant</th>
+                        <th className="py-2 px-2">Chassis Number (VIN)</th>
+                        <th className="py-2 px-2">Color</th>
+                        <th className="py-2 px-2">Powertrain & Specs</th>
+                        <th className="py-2 px-2">Cost / Retail Price</th>
+                        <th className="py-2 px-2">Status / Assignment</th>
+                        <th className="py-2 px-2.5 text-right">Inspect Detail</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {paginatedBikes.map((bike) => {
+                        const itemProfit = bike.sellingPrice - bike.purchasePrice;
+                        return (
+                          <tr
+                            key={bike.id}
+                            onClick={() => handleOpenBikeDetail(bike)}
+                            className="hover:bg-blue-50/60 cursor-pointer transition group h-[28px]"
+                          >
+                            {/* Model & Variant */}
+                            <td className="py-1.5 px-2.5">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-6 h-6 rounded bg-blue-100/70 border border-blue-200 text-blue-700 flex items-center justify-center font-bold text-[9px] shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
+                                  <Bike className="w-3 h-3" />
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="font-bold text-slate-900 text-[11px] block group-hover:text-blue-600 transition truncate">
+                                    {bike.modelName}
+                                  </span>
+                                  <span className="text-[9px] text-slate-500 font-medium truncate block">
+                                    {bike.customBikeName && bike.customBikeName !== bike.modelName 
+                                      ? bike.customBikeName 
+                                      : 'Standard Edition'}
+                                  </span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="font-bold text-slate-900 text-sm block group-hover:text-blue-600 transition">
-                                  {bike.modelName}
+                            </td>
+
+                            {/* Chassis Number */}
+                            <td className="py-1.5 px-2">
+                              <span className="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 block w-fit">
+                                {bike.chassisNumber}
+                              </span>
+                              <span className="text-[8px] text-slate-400 block mt-0.5">
+                                {formatDate(bike.entryDate)}
+                              </span>
+                            </td>
+
+                            {/* Color */}
+                            <td className="py-1.5 px-2">
+                              <span className="inline-flex items-center gap-1 font-medium text-slate-800 text-[10px]">
+                                <span 
+                                  className="w-2 h-2 rounded-full inline-block border border-slate-300 shrink-0"
+                                  style={{
+                                    backgroundColor: 
+                                      bike.color.toLowerCase().includes('black') ? '#0f172a' :
+                                      bike.color.toLowerCase().includes('white') ? '#f8fafc' :
+                                      bike.color.toLowerCase().includes('red') ? '#ef4444' :
+                                      bike.color.toLowerCase().includes('blue') ? '#3b82f6' :
+                                      bike.color.toLowerCase().includes('green') ? '#10b981' :
+                                      bike.color.toLowerCase().includes('yellow') ? '#eab308' :
+                                      bike.color.toLowerCase().includes('grey') ? '#94a3b8' :
+                                      '#06b6d4'
+                                  }}
+                                ></span>
+                                <span className="truncate">{bike.color}</span>
+                              </span>
+                            </td>
+
+                            {/* Powertrain */}
+                            <td className="py-1.5 px-2">
+                              <div className="space-y-0.5">
+                                <span className="font-mono font-semibold text-slate-800 text-[9px] block">
+                                  {bike.motorPowerWatts || 1200}W • {bike.batteryCapacity || '72V'}
                                 </span>
-                                <span className="text-[11px] text-slate-500 font-medium">
-                                  {bike.customBikeName && bike.customBikeName !== bike.modelName 
-                                    ? bike.customBikeName 
-                                    : 'Standard Edition'}
+                                <span className="text-[8px] text-blue-600 font-mono block">
+                                  {bike.maxSpeedKmH || 60}km/h • {bike.rangeKm || 75}km
                                 </span>
                               </div>
-                            </div>
-                          </td>
+                            </td>
 
-                          {/* Chassis Number */}
-                          <td className="py-3.5 px-3">
-                            <span className="font-mono text-xs font-semibold px-2 py-1 rounded bg-slate-100 text-slate-800 border border-slate-200 block w-fit">
-                              {bike.chassisNumber}
-                            </span>
-                            <span className="text-[10px] text-slate-400 block mt-0.5">
-                              Reg: {formatDate(bike.entryDate)}
-                            </span>
-                          </td>
+                            {/* Cost / Retail Price */}
+                            <td className="py-1.5 px-2">
+                              <div className="space-y-0.5">
+                                <span className="font-mono font-bold text-slate-900 text-[10px] block">
+                                  {formatCurrency(bike.sellingPrice)}
+                                </span>
+                                <span className="font-mono text-[8px] text-slate-500 block">
+                                  Cost: {formatCurrency(bike.purchasePrice)}
+                                </span>
+                              </div>
+                            </td>
 
-                          {/* Color */}
-                          <td className="py-3.5 px-3">
-                            <span className="inline-flex items-center gap-1.5 font-medium text-slate-800">
-                              <span 
-                                className="w-2.5 h-2.5 rounded-full inline-block border border-slate-300 shrink-0"
-                                style={{
-                                  backgroundColor: 
-                                    bike.color.toLowerCase().includes('black') ? '#0f172a' :
-                                    bike.color.toLowerCase().includes('white') ? '#f8fafc' :
-                                    bike.color.toLowerCase().includes('red') ? '#ef4444' :
-                                    bike.color.toLowerCase().includes('blue') ? '#3b82f6' :
-                                    bike.color.toLowerCase().includes('green') ? '#10b981' :
-                                    bike.color.toLowerCase().includes('yellow') ? '#eab308' :
-                                    bike.color.toLowerCase().includes('grey') ? '#94a3b8' :
-                                    '#06b6d4'
+                            {/* Status & Assignment */}
+                            <td className="py-1.5 px-2">
+                              {bike.status === 'IN_STOCK' && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
+                                  <span className="w-1 h-1 rounded-full bg-emerald-500"></span>
+                                  In Stock
+                                </span>
+                              )}
+                              {bike.status === 'SOLD_FULL' && (
+                                <div>
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-300">
+                                    <CheckCircle className="w-2.5 h-2.5" />
+                                    Sold
+                                  </span>
+                                  {bike.customer && (
+                                    <span className="text-[8px] text-slate-600 block mt-0.5 font-medium truncate max-w-[100px]">
+                                      {bike.customer.fullName}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {bike.status === 'SOLD_INSTALLMENT' && (
+                                <div>
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold border ${
+                                    bike.installmentPlan?.status === 'PAID'
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                      : 'bg-amber-50 text-amber-800 border-amber-300'
+                                  }`}>
+                                    <CreditCard className="w-2.5 h-2.5" />
+                                    {bike.installmentPlan?.status === 'PAID' ? 'Paid' : 'EMI'}
+                                  </span>
+                                  {bike.customer && (
+                                    <span className="text-[8px] text-slate-600 block mt-0.5 font-medium truncate max-w-[100px]">
+                                      {bike.customer.fullName}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Inspect Detail Button */}
+                            <td className="py-1.5 px-2.5 text-right">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenBikeDetail(bike);
                                 }}
-                              ></span>
-                              <span>{bike.color}</span>
-                            </span>
-                          </td>
+                                className="inline-flex items-center gap-0.5 px-2 py-1 rounded bg-blue-50 group-hover:bg-blue-600 text-blue-600 group-hover:text-white text-[9px] font-bold border border-blue-200 group-hover:border-blue-600 transition"
+                              >
+                                <Eye className="w-2.5 h-2.5" />
+                                <span>View</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-                          {/* Powertrain */}
-                          <td className="py-3.5 px-3">
-                            <div className="space-y-0.5">
-                              <span className="font-mono font-semibold text-slate-800 text-[11px] block">
-                                {bike.motorPowerWatts || 1200}W • {bike.batteryCapacity || '72V Graphene'}
-                              </span>
-                              <span className="text-[10px] text-blue-600 font-mono block">
-                                {bike.maxSpeedKmH || 60} km/h • {bike.rangeKm || 75} km
-                              </span>
-                            </div>
-                          </td>
+                {/* Pagination Controls - Optimized for lakhs of records */}
+                {totalPages > 1 && (
+                  <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-[10px] text-slate-600 font-medium">
+                      Page {currentPage} of {totalPages.toLocaleString()} • Total: {filteredBikes.length.toLocaleString()} records
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5">
+                      {/* First Page */}
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="px-2 py-1 text-[10px] font-semibold border border-slate-300 rounded bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      >
+                        First
+                      </button>
 
-                          {/* Cost / Retail Price */}
-                          <td className="py-3.5 px-3">
-                            <div className="space-y-0.5">
-                              <span className="font-mono font-bold text-slate-900 text-xs block">
-                                {formatCurrency(bike.sellingPrice)}
-                              </span>
-                              <span className="font-mono text-[10px] text-slate-500 block">
-                                Cost: {formatCurrency(bike.purchasePrice)}
-                              </span>
-                            </div>
-                          </td>
+                      {/* Previous */}
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-2 py-1 text-[10px] font-semibold border border-slate-300 rounded bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      >
+                        <ChevronLeft className="w-3 h-3" />
+                      </button>
 
-                          {/* Status & Assignment */}
-                          <td className="py-3.5 px-3">
-                            {bike.status === 'IN_STOCK' && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                In Stock
-                              </span>
-                            )}
-                            {bike.status === 'SOLD_FULL' && (
-                              <div>
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-300">
-                                  <CheckCircle className="w-3 h-3" />
-                                  Sold (Cash)
-                                </span>
-                                {bike.customer && (
-                                  <span className="text-[10px] text-slate-600 block mt-0.5 font-medium truncate max-w-[140px]">
-                                    {bike.customer.fullName}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            {bike.status === 'SOLD_INSTALLMENT' && (
-                              <div>
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
-                                  bike.installmentPlan?.status === 'PAID'
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                    : 'bg-amber-50 text-amber-800 border-amber-300'
-                                }`}>
-                                  <CreditCard className="w-3 h-3" />
-                                  {bike.installmentPlan?.status === 'PAID' ? 'Fully Paid' : 'Installment'}
-                                </span>
-                                {bike.customer && (
-                                  <span className="text-[10px] text-slate-600 block mt-0.5 font-medium truncate max-w-[140px]">
-                                    {bike.customer.fullName}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </td>
+                      {/* Page Number Input */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-slate-600">Page</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={totalPages}
+                          value={currentPage}
+                          onChange={(e) => {
+                            const page = parseInt(e.target.value);
+                            if (page >= 1 && page <= totalPages) {
+                              setCurrentPage(page);
+                            }
+                          }}
+                          className="w-16 px-2 py-1 text-[10px] text-center font-mono font-semibold border border-slate-300 rounded bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        />
+                        <span className="text-[10px] text-slate-600">of {totalPages.toLocaleString()}</span>
+                      </div>
 
-                          {/* Inspect Detail Button */}
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenBikeDetail(bike);
-                              }}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 group-hover:bg-blue-600 text-blue-600 group-hover:text-white text-xs font-bold border border-blue-200 group-hover:border-blue-600 transition shadow-sm"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>View Specs</span>
-                              <ChevronRight className="w-3 h-3" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                      {/* Next */}
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-2 py-1 text-[10px] font-semibold border border-slate-300 rounded bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      >
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
+
+                      {/* Last Page */}
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="px-2 py-1 text-[10px] font-semibold border border-slate-300 rounded bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      >
+                        Last
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -993,13 +1098,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   </button>
                 )}
 
-                <button
-                  onClick={() => onEditBike(activeBike)}
-                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs py-2 rounded-lg border border-slate-300 transition"
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                  <span>Edit Bike Details</span>
-                </button>
+                {/* Edit Button - Only show for IN_STOCK bikes, hidden for sold bikes */}
+                {activeBike.status === 'IN_STOCK' && (
+                  <button
+                    onClick={() => onEditBike(activeBike)}
+                    className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs py-2 rounded-lg border border-slate-300 transition"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Edit Bike Details</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => {

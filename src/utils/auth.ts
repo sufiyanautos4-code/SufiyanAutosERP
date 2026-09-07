@@ -3,7 +3,6 @@ export {
   ROLE_LABELS,
   signUpWithEmail,
   signInWithEmail,
-  signInWithGoogle,
   signOutUser,
   sendPasswordReset,
   updateUserProfile,

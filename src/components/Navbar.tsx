@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4 lg:gap-6">
           
           {/* Logo & Brand */}
-          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => setActiveTab('inventory')}>
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => setActiveTab('stock')}>
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-sm">
               E
             </div>
@@ -241,21 +241,34 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           <button
-            id="tab-btn-inventory"
-            onClick={() => setActiveTab('inventory')}
+            id="tab-btn-ledger"
+            onClick={() => setActiveTab('ledger')}
             className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition shrink-0 ${
-              activeTab === 'inventory'
+              activeTab === 'ledger'
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
             <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>2. Fleet Operations & Hub</span>
+            <span>2. Ledger (Purchase/Sales)</span>
             <span className={`ml-1 px-1.5 py-0.2 rounded text-[10px] font-mono ${
-              activeTab === 'inventory' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-slate-300'
+              activeTab === 'ledger' ? 'bg-blue-700 text-white' : 'bg-slate-800 text-slate-300'
             }`}>
-              {bikes.length}
+              {soldCount} Sold
             </span>
+          </button>
+
+          <button
+            id="tab-btn-models"
+            onClick={() => setActiveTab('models')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition shrink-0 ${
+              activeTab === 'models'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>3. Model Types & Variants</span>
           </button>
 
           <button
@@ -268,7 +281,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>3. Product Entry (VIN Registry)</span>
+            <span>4. Product Entry (VIN Registry)</span>
           </button>
 
           <button
@@ -281,7 +294,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>4. Product Details & Specs</span>
+            <span>5. Product Details & Specs</span>
           </button>
 
           <button
@@ -294,7 +307,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <BadgeDollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span>5. Sales & Installments</span>
+            <span>6. Sales & Installments</span>
             {activeInstallments > 0 && (
               <span className={`ml-1 px-1.5 py-0.2 rounded text-[10px] font-mono ${
                 activeTab === 'sales' ? 'bg-amber-400 text-slate-900 font-bold' : 'bg-amber-500/20 text-amber-300'

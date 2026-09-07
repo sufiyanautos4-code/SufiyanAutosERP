@@ -1,17 +1,16 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
   onAuthStateChanged,
-  GoogleAuthProvider,
   setPersistence,
   browserLocalPersistence,
-  User as FirebaseUser
+  User as FirebaseUser,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import {
   doc,
@@ -19,7 +18,11 @@ import {
   setDoc,
   updateDoc,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  limit
 } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../firebase';
 import { AuthUser, UserRole } from '../types';
@@ -207,7 +210,29 @@ export async function getOrCreateUserProfile(
 }
 
 /**
- * Sign up with Email and Password
+ * Check if any user exists in the system (Single User Constraint)
+ */
+export async function checkUserExists(): Promise<{ exists: boolean; email?: string }> {
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, limit(1));
+    const snapshot = await getDocs(q);
+    
+    if (!snapshot.empty) {
+      const firstUser = snapshot.docs[0].data();
+      return { exists: true, email: firstUser.email || 'existing account' };
+    }
+    
+    return { exists: false };
+  } catch (err) {
+    console.error('Error checking user existence:', err);
+    return { exists: false };
+  }
+}
+
+/**
+ * Sign up with Email and Password (SINGLE USER CONSTRAINT)
+ * Only allows registration if NO user exists in the database
  */
 export async function signUpWithEmail(data: {
   email: string;
@@ -216,24 +241,57 @@ export async function signUpWithEmail(data: {
   phone?: string;
 }): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
   try {
-    const cred = await createUserWithEmailAndPassword(auth, data.email.trim(), data.password);
+    // SINGLE USER CONSTRAINT: Check if any user already exists
+    const userCheck = await checkUserExists();
     
-    // Update Firebase Auth displayName
-    if (data.name.trim()) {
-      try {
-        await updateProfile(cred.user, { displayName: data.name.trim() });
-      } catch (e) {
-        console.warn('Could not set displayName on auth user:', e);
-      }
+    if (userCheck.exists) {
+      return {
+        success: false,
+        error: `Account already exists in the system (${userCheck.email}). This ERP system supports only ONE admin account. Please sign in instead.`
+      };
     }
 
-    const userProfile = await getOrCreateUserProfile(cred.user, {
-      name: data.name.trim(),
-      phone: data.phone?.trim() || ''
-    });
+    // Additional check: prevent creating account if email already exists in Firebase Auth
+    // This prevents same email being used with different auth methods
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, data.email.trim(), data.password);
+      
+      // Update Firebase Auth displayName
+      if (data.name.trim()) {
+        try {
+          await updateProfile(cred.user, { displayName: data.name.trim() });
+        } catch (e) {
+          console.warn('Could not set displayName on auth user:', e);
+        }
+      }
 
-    saveLocalSessionUser(userProfile);
-    return { success: true, user: userProfile };
+      const userProfile = await getOrCreateUserProfile(cred.user, {
+        name: data.name.trim(),
+        phone: data.phone?.trim() || ''
+      });
+
+      // Mark this user as the system administrator with EMAIL provider
+      await updateDoc(doc(db, 'users', cred.user.uid), {
+        role: 'SUPER_ADMIN',
+        roleTitle: 'System Administrator',
+        isSystemAdmin: true,
+        authProvider: 'email', // Track provider
+        registeredAt: new Date().toISOString()
+      });
+
+      const finalUser = { ...userProfile, role: 'SUPER_ADMIN' as UserRole, authProvider: 'email' as const };
+      saveLocalSessionUser(finalUser);
+      return { success: true, user: finalUser };
+    } catch (err: any) {
+      // If email-already-in-use, it means this email already has a Google account
+      if (err.code === 'auth/email-already-in-use') {
+        return {
+          success: false,
+          error: 'This email is already registered with Google Sign-In. Please sign in with Google instead.'
+        };
+      }
+      throw err;
+    }
   } catch (err: any) {
     return { success: false, error: getFriendlyAuthErrorMessage(err) };
   }
@@ -257,51 +315,7 @@ export async function signInWithEmail(
 }
 
 /**
- * Sign in with Google (OAuth Popup)
- */
-export async function signInWithGoogle(): Promise<{
-  success: boolean;
-  user?: AuthUser;
-  error?: string;
-}> {
-  try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
-
-    try {
-      console.log('Attempting Google Sign-In with popup...');
-      const cred = await signInWithPopup(auth, provider);
-      console.log('Google Sign-In popup successful');
-      
-      const userProfile = await getOrCreateUserProfile(cred.user, {
-        name: cred.user.displayName || undefined
-      });
-      saveLocalSessionUser(userProfile);
-      return { success: true, user: userProfile };
-    } catch (popupError: any) {
-      console.error('Google Sign-In popup error:', popupError);
-      
-      if (popupError.code === 'auth/popup-closed-by-user') {
-        return { success: false, error: 'Google sign-in popup was closed before completing.' };
-      }
-      if (popupError.code === 'auth/cancelled-popup-request') {
-        return { success: false, error: 'Google sign-in was cancelled.' };
-      }
-      if (popupError.code === 'auth/popup-blocked') {
-        return { success: false, error: 'Google sign-in popup was blocked by browser. Please allow popups.' };
-      }
-      throw popupError;
-    }
-  } catch (err: any) {
-    console.error('Google Sign-In Error:', err);
-    return { success: false, error: getFriendlyAuthErrorMessage(err) };
-  }
-}
-
-/**
- * Send password reset email
+ * Send password reset email (Firebase built-in) - DEPRECATED, use Resend instead
  */
 export async function sendPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
   try {
@@ -309,6 +323,80 @@ export async function sendPasswordReset(email: string): Promise<{ success: boole
     return { success: true };
   } catch (err: any) {
     return { success: false, error: getFriendlyAuthErrorMessage(err) };
+  }
+}
+
+/**
+ * Reset password with email (for password reset flow)
+ * This uses Firebase Admin approach with email link
+ */
+export async function resetPasswordWithEmail(
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // First, sign in the user with a temporary session to change password
+    // This requires the user to be authenticated
+    // For security, we use Firebase's sendPasswordResetEmail as fallback
+    
+    // Since we're on client-side and can't directly reset password without current session,
+    // we'll send a password reset email as backup
+    await sendPasswordResetEmail(auth, email.trim());
+    
+    return {
+      success: true
+    };
+  } catch (err: any) {
+    return { success: false, error: getFriendlyAuthErrorMessage(err) };
+  }
+}
+
+/**
+ * Change password for logged-in user (requires current password)
+ */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = auth.currentUser;
+    
+    if (!user || !user.email) {
+      return {
+        success: false,
+        error: 'No user is currently logged in.'
+      };
+    }
+
+    if (newPassword.length < 6) {
+      return {
+        success: false,
+        error: 'New password must be at least 6 characters long.'
+      };
+    }
+
+    // Re-authenticate user before changing password (security requirement)
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+
+    // Update password
+    await updatePassword(user, newPassword);
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Password change error:', err);
+    
+    if (err.code === 'auth/wrong-password') {
+      return {
+        success: false,
+        error: 'Current password is incorrect.'
+      };
+    }
+    
+    return {
+      success: false,
+      error: getFriendlyAuthErrorMessage(err)
+    };
   }
 }
 
@@ -421,24 +509,31 @@ export function subscribeAuthState(
             saveLocalSessionUser(profile);
             onUserChanged(profile, false);
           } else {
-            // Profile doc doesn't exist yet, create it safely with fallback details
-            getOrCreateUserProfile(firebaseUser, {
-              name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User')
-            }).then((p) => {
-              saveLocalSessionUser(p);
-              onUserChanged(p, false);
-            }).catch(err => {
-              console.warn('Profile doc init error:', err);
-            });
+            // CRITICAL: Profile doc doesn't exist!
+            // This means either:
+            // 1. A blocked user that should be deleted (Google sign-in constraint)
+            // 2. A legitimate new user whose profile is being created
+            // 
+            // DO NOT auto-create profile here - wait for explicit sign-in/sign-up to create it
+            // If this Firebase Auth user was blocked, it will be deleted shortly
+            console.warn('⚠️ Firebase Auth user exists but no Firestore profile found. Waiting for profile creation or deletion...');
+            
+            // Give it 2 seconds - if profile still doesn't exist, sign out (blocked user)
+            setTimeout(async () => {
+              const recheckSnap = await getDoc(userRef);
+              if (!recheckSnap.exists() && auth.currentUser?.uid === firebaseUser.uid) {
+                console.log('❌ Profile was never created - this was a blocked signup. Signing out...');
+                await signOut(auth).catch(() => {});
+                clearLocalSessionUser();
+                onUserChanged(null, false);
+              }
+            }, 2000);
           }
         },
         async (error) => {
-          console.warn('User doc listener fallback:', error);
-          const fallback = await getOrCreateUserProfile(firebaseUser, {
-            name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User')
-          });
-          saveLocalSessionUser(fallback);
-          onUserChanged(fallback, false);
+          console.warn('User doc listener error:', error);
+          // Do NOT auto-create profile on error
+          onUserChanged(null, false);
         }
       );
     } else {

@@ -47,12 +47,12 @@ export const SaleModal: React.FC<SaleModalProps> = ({
   const [downPayment, setDownPayment] = useState<number>(30000);
   const [tenureMonths, setTenureMonths] = useState<number>(5);
 
-  // Customer Details
+  // Customer Details - ALL FIELDS NOW REQUIRED
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [cnicOrId, setCnicOrId] = useState<string>('');
   const [address, setAddress] = useState<string>('');
-  const [city, setCity] = useState<string>('Islamabad');
+  const [city, setCity] = useState<string>('');
   const [saleDate, setSaleDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -89,9 +89,21 @@ export const SaleModal: React.FC<SaleModalProps> = ({
 
   const validate = (): boolean => {
     const errs: { [key: string]: string } = {};
+    
+    // Bike Selection
     if (!currentBike) errs.bike = 'Please select a vehicle to sell';
+    
+    // ALL CLIENT FIELDS ARE NOW REQUIRED AND MANDATORY
     if (!fullName.trim()) errs.fullName = 'Customer Full Name is required';
     if (!phone.trim()) errs.phone = 'Customer phone number is required';
+    if (!cnicOrId.trim()) errs.cnicOrId = 'CNIC / National ID is required';
+    if (!address.trim()) errs.address = 'Delivery Address is required';
+    if (!city.trim()) errs.city = 'City is required';
+    
+    // Shop Name Validation
+    if (!shopName.trim()) errs.shopName = 'Shop/Branch location is required';
+    
+    // Pricing Validation
     if (actualSoldPrice <= 0) errs.actualSoldPrice = 'Sale price must be greater than 0';
 
     if (saleType === 'INSTALLMENT') {
@@ -361,6 +373,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Tariq Mehmood"
+                  required
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
                 />
                 {errors.fullName && <p className="text-[10px] text-rose-500 mt-1">{errors.fullName}</p>}
@@ -375,6 +388,7 @@ export const SaleModal: React.FC<SaleModalProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. +92 300 1234567"
+                  required
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-blue-500"
                 />
                 {errors.phone && <p className="text-[10px] text-rose-500 mt-1">{errors.phone}</p>}
@@ -382,41 +396,47 @@ export const SaleModal: React.FC<SaleModalProps> = ({
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                  CNIC / National Identity Card #
+                  CNIC / National Identity Card # <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={cnicOrId}
                   onChange={(e) => setCnicOrId(e.target.value)}
                   placeholder="e.g. 35201-1234567-1"
+                  required
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 font-mono"
                 />
+                {errors.cnicOrId && <p className="text-[10px] text-rose-500 mt-1">{errors.cnicOrId}</p>}
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                  City
+                  City <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Lahore"
+                  required
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
                 />
+                {errors.city && <p className="text-[10px] text-rose-500 mt-1">{errors.city}</p>}
               </div>
 
               <div className="sm:col-span-2">
                 <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                  Delivery Address
+                  Delivery Address <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="e.g. House #10, Street 3, Sector G-9"
+                  required
                   className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900"
                 />
+                {errors.address && <p className="text-[10px] text-rose-500 mt-1">{errors.address}</p>}
               </div>
             </div>
           </div>
