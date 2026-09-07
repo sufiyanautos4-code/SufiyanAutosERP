@@ -14,7 +14,9 @@ import {
   CreditCard, 
   Save, 
   RotateCcw,
-  Bike
+  Bike,
+  FileCheck,
+  Calendar
 } from 'lucide-react';
 import { EveeBike, VehicleStatus } from '../types';
 import { formatCurrency, generateChassisNumber, generateInvoiceNumber } from '../utils/formatters';
@@ -72,6 +74,13 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   const [downPayment, setDownPayment] = useState<number>(0);
   const [installmentTenureMonths, setInstallmentTenureMonths] = useState<number>(5);
 
+  // Documentation tracking (optional for new bikes)
+  const [documentationReceived, setDocumentationReceived] = useState<boolean>(false);
+  const [documentationReceivedDate, setDocumentationReceivedDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [documentationNotes, setDocumentationNotes] = useState<string>('');
+
   // Validation & Feedback
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [successMessage, setSuccessMessage] = useState<string>('');
@@ -91,6 +100,13 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       setMaxSpeedKmH(editingBike.maxSpeedKmH || 60);
       setRangeKm(editingBike.rangeKm || 75);
       setNotes(editingBike.notes || '');
+      
+      // Load documentation fields
+      setDocumentationReceived(editingBike.documentationReceived || false);
+      setDocumentationReceivedDate(
+        editingBike.documentationReceivedDate || new Date().toISOString().slice(0, 10)
+      );
+      setDocumentationNotes(editingBike.documentationNotes || '');
 
       if (editingBike.shopName) {
         setShopName(editingBike.shopName);
@@ -188,6 +204,9 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       status: finalStatus,
       entryDate: editingBike?.entryDate || today,
       notes: notes.trim(),
+      documentationReceived,
+      documentationReceivedDate: documentationReceived ? documentationReceivedDate : undefined,
+      documentationNotes: documentationNotes.trim() || undefined,
     };
 
     onSaveBike(bikeData);
@@ -202,6 +221,11 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       setCustomerCnic('');
       setCustomerAddress('');
       setEmergencyContact('');
+      
+      // Reset documentation fields
+      setDocumentationReceived(false);
+      setDocumentationReceivedDate(new Date().toISOString().slice(0, 10));
+      setDocumentationNotes('');
     }
 
     setTimeout(() => {
@@ -702,6 +726,82 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                       This bike will be added to available showroom inventory. To sell, use the Sales page after registration.
                     </p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 4.5: DOCUMENTATION TRACKING (OPTIONAL) */}
+            <div className="bg-white border border-emerald-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <FileCheck className="w-4 h-4 text-emerald-600" />
+                    Documentation Status (Optional)
+                  </h2>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Track if bike documentation is received at time of registration
+                  </p>
+                </div>
+              </div>
+
+              {/* Documentation Received Toggle */}
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-3 bg-emerald-50/50 border border-emerald-200 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="docReceivedEntry"
+                    checked={documentationReceived}
+                    onChange={(e) => setDocumentationReceived(e.target.checked)}
+                    disabled={isSoldBike}
+                    className="mt-0.5 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 disabled:opacity-50"
+                  />
+                  <label htmlFor="docReceivedEntry" className="flex-1 cursor-pointer">
+                    <div className="text-sm font-semibold text-slate-900">
+                      Documentation Received
+                    </div>
+                    <div className="text-[11px] text-slate-600 mt-0.5">
+                      Check if bike documentation (registration papers, transfer docs, etc.) is received during bike entry
+                    </div>
+                  </label>
+                </div>
+
+                {documentationReceived && (
+                  <div className="pl-7 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                        Date Received
+                      </label>
+                      <input
+                        type="date"
+                        value={documentationReceivedDate}
+                        onChange={(e) => setDocumentationReceivedDate(e.target.value)}
+                        disabled={isSoldBike}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 disabled:bg-slate-100 disabled:text-slate-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Documentation Notes (Optional)
+                      </label>
+                      <textarea
+                        value={documentationNotes}
+                        onChange={(e) => setDocumentationNotes(e.target.value)}
+                        placeholder="e.g. Original registration papers received, token verified, all documents complete..."
+                        rows={2}
+                        disabled={isSoldBike}
+                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 resize-none disabled:bg-slate-100 disabled:text-slate-500"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                <div className="text-[11px] text-blue-900">
+                  <strong>Note:</strong> Documentation status can be updated anytime after registration through the Product Detail view or Sales tab.
                 </div>
               </div>
             </div>
