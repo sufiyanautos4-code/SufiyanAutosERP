@@ -50,3 +50,7 @@ ui-debug.log
 .temp/
 .tmp/
 
+# Test files with secrets (never commit)
+test-*.js
+*-key.js
+*-secret.js

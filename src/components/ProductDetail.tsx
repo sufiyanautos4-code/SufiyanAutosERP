@@ -31,7 +31,8 @@ import {
   Sparkles,
   SlidersHorizontal,
   Eye,
-  ListFilter
+  ListFilter,
+  FileCheck
 } from 'lucide-react';
 import { EveeBike } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -46,6 +47,7 @@ interface ProductDetailProps {
   onSellBike: (bike: EveeBike) => void;
   onReceivePayment: (bike: EveeBike) => void;
   onPrintInvoice: (bike: EveeBike) => void;
+  onUpdateDocumentation?: (bike: EveeBike) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
@@ -59,6 +61,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   onSellBike,
   onReceivePayment,
   onPrintInvoice,
+  onUpdateDocumentation,
   searchQuery,
   setSearchQuery,
 }) => {
@@ -1052,6 +1055,56 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                         <span className="text-slate-700">{formatDate(activeBike.saleDate)}</span>
                       </div>
                     )}
+
+                    {/* Documentation Status */}
+                    <div className="pt-2 mt-2 border-t border-slate-100">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] text-slate-600 font-semibold flex items-center gap-1.5">
+                          <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          Documentation Status
+                        </span>
+                        {onUpdateDocumentation && (
+                          <button
+                            onClick={() => onUpdateDocumentation(activeBike)}
+                            className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition"
+                          >
+                            <Edit className="w-2.5 h-2.5" />
+                            Update
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border ${
+                        activeBike.documentationReceived
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                          : 'bg-amber-50 border-amber-200 text-amber-800'
+                      }`}>
+                        {activeBike.documentationReceived ? (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <span className="font-bold text-xs block">Documentation Received</span>
+                              {activeBike.documentationReceivedDate && (
+                                <span className="text-[10px] text-emerald-700 block">
+                                  Received on: {formatDate(activeBike.documentationReceivedDate)}
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span className="font-bold text-xs">Documentation Pending</span>
+                          </>
+                        )}
+                      </div>
+
+                      {activeBike.documentationNotes && (
+                        <div className="mt-1.5 text-[10px] text-slate-600 bg-slate-50 p-2 rounded border border-slate-200">
+                          <span className="font-semibold">Notes:</span> {activeBike.documentationNotes}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -1095,6 +1148,17 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>Record Installment Payment</span>
+                  </button>
+                )}
+
+                {/* Documentation Update Button - Only show for sold bikes */}
+                {(activeBike.status === 'SOLD_FULL' || activeBike.status === 'SOLD_INSTALLMENT') && onUpdateDocumentation && (
+                  <button
+                    onClick={() => onUpdateDocumentation(activeBike)}
+                    className="w-full flex items-center justify-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs py-2.5 rounded-lg border border-emerald-300 transition shadow-sm"
+                  >
+                    <FileCheck className="w-4 h-4" />
+                    <span>Update Documentation Status</span>
                   </button>
                 )}
 

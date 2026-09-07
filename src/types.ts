@@ -70,6 +70,11 @@ export interface EveeBike {
   customer?: CustomerDetails;
   installmentPlan?: InstallmentPlan;
 
+  // Documentation Tracking (editable even after sale)
+  documentationReceived?: boolean;
+  documentationReceivedDate?: string;
+  documentationNotes?: string;
+
   // Cloud & Audit metadata
   createdBy?: string;
   createdByName?: string;

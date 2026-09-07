@@ -11,7 +11,8 @@ import {
   AlertCircle,
   Calendar,
   Sparkles,
-  Store
+  Store,
+  FileCheck
 } from 'lucide-react';
 import { EveeBike, InstallmentPlan } from '../types';
 import { formatCurrency, generateInvoiceNumber } from '../utils/formatters';
@@ -54,6 +55,13 @@ export const SaleModal: React.FC<SaleModalProps> = ({
   const [address, setAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [saleDate, setSaleDate] = useState<string>(new Date().toISOString().slice(0, 10));
+
+  // Documentation tracking
+  const [documentationReceived, setDocumentationReceived] = useState<boolean>(false);
+  const [documentationReceivedDate, setDocumentationReceivedDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [documentationNotes, setDocumentationNotes] = useState<string>('');
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -144,6 +152,9 @@ export const SaleModal: React.FC<SaleModalProps> = ({
         address: address.trim(),
         city: city.trim(),
       },
+      documentationReceived,
+      documentationReceivedDate: documentationReceived ? documentationReceivedDate : undefined,
+      documentationNotes: documentationNotes.trim() || undefined,
     };
 
     if (saleType === 'INSTALLMENT') {
@@ -439,6 +450,61 @@ export const SaleModal: React.FC<SaleModalProps> = ({
                 {errors.address && <p className="text-[10px] text-rose-500 mt-1">{errors.address}</p>}
               </div>
             </div>
+          </div>
+
+          {/* Documentation Tracking (Optional) */}
+          <div className="space-y-3 bg-emerald-50/50 p-4 rounded-xl border border-emerald-200">
+            <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+              Documentation Status (Optional)
+            </h3>
+
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="docReceived"
+                checked={documentationReceived}
+                onChange={(e) => setDocumentationReceived(e.target.checked)}
+                className="mt-0.5 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+              />
+              <label htmlFor="docReceived" className="flex-1 cursor-pointer">
+                <div className="text-xs font-semibold text-slate-900">
+                  Documentation Received at Time of Sale
+                </div>
+                <div className="text-[11px] text-slate-600 mt-0.5">
+                  Check if bike documentation (registration, transfer papers, etc.) is received during sale
+                </div>
+              </label>
+            </div>
+
+            {documentationReceived && (
+              <div className="pl-7 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Date Received
+                  </label>
+                  <input
+                    type="date"
+                    value={documentationReceivedDate}
+                    onChange={(e) => setDocumentationReceivedDate(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Documentation Notes (Optional)
+                  </label>
+                  <textarea
+                    value={documentationNotes}
+                    onChange={(e) => setDocumentationNotes(e.target.value)}
+                    placeholder="e.g. Original registration papers received, token verified..."
+                    rows={2}
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-500 resize-none"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer Buttons */}

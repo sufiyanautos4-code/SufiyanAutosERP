@@ -20,7 +20,8 @@ import {
   Wallet,
   Store,
   MapPin,
-  Settings
+  Settings,
+  FileCheck
 } from 'lucide-react';
 import { EveeBike, InstallmentPayment } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -455,7 +456,7 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
                     </div>
 
                     {/* Compact Financials Row */}
-                    <div className="flex items-center gap-3 text-[11px] mb-2">
+                    <div className="flex items-center gap-3 text-[11px] mb-2 flex-wrap">
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Price:</span>
                         <span className="font-mono font-bold text-slate-900">{formatCurrency(plan.totalSalePrice)}</span>
@@ -481,6 +482,13 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">{completionPct}%</span>
                         <span className="text-slate-400">({plan.payments.length} pmts)</span>
+                      </div>
+                      <span className="text-slate-300">|</span>
+                      <div className="flex items-center gap-1">
+                        <FileCheck className={`w-3 h-3 ${bike.documentationReceived ? 'text-emerald-600' : 'text-amber-500'}`} />
+                        <span className={`text-[10px] font-semibold ${bike.documentationReceived ? 'text-emerald-700' : 'text-amber-700'}`}>
+                          Docs {bike.documentationReceived ? '✓' : 'Pending'}
+                        </span>
                       </div>
                     </div>
 

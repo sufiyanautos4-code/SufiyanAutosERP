@@ -9,6 +9,7 @@ import { ProductSales } from './components/ProductSales';
 import { SaleModal } from './components/SaleModal';
 import { ReceivePaymentModal } from './components/ReceivePaymentModal';
 import { InvoicePrintModal } from './components/InvoicePrintModal';
+import { DocumentationUpdateModal } from './components/DocumentationUpdateModal';
 import { AuthPage } from './components/AuthPage';
 import { UserProfileModal } from './components/UserProfileModal';
 import { ActiveTab, EveeBike, AuthUser } from './types';
@@ -61,6 +62,7 @@ export default function App() {
   const [isSaleModalOpen, setIsSaleModalOpen] = useState<boolean>(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState<boolean>(false);
+  const [isDocumentationModalOpen, setIsDocumentationModalOpen] = useState<boolean>(false);
   const [activeModalBike, setActiveModalBike] = useState<EveeBike | null>(null);
 
   // Global Search
@@ -192,6 +194,21 @@ export default function App() {
   const handleOpenPrintInvoice = (bike: EveeBike) => {
     setActiveModalBike(bike);
     setIsInvoiceModalOpen(true);
+  };
+
+  const handleOpenDocumentationModal = (bike: EveeBike) => {
+    setActiveModalBike(bike);
+    setIsDocumentationModalOpen(true);
+  };
+
+  const handleDocumentationUpdate = (updatedBike: EveeBike) => {
+    setBikes(prev => prev.map(b => b.id === updatedBike.id ? updatedBike : b));
+    setSelectedBikeId(updatedBike.id);
+
+    // Sync updated documentation status to Cloud Firestore
+    saveBikeToFirestore(updatedBike, currentUser).catch(err => {
+      console.error('Firestore documentation update error:', err);
+    });
   };
 
   const handleConfirmSale = (updatedBike: EveeBike) => {
@@ -352,6 +369,7 @@ export default function App() {
             onSellBike={(bike) => handleOpenSaleModal(bike)}
             onReceivePayment={(bike) => handleOpenReceivePaymentModal(bike)}
             onPrintInvoice={(bike) => handleOpenPrintInvoice(bike)}
+            onUpdateDocumentation={(bike) => handleOpenDocumentationModal(bike)}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
@@ -413,6 +431,13 @@ export default function App() {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         bike={activeModalBike}
+      />
+
+      <DocumentationUpdateModal
+        isOpen={isDocumentationModalOpen}
+        onClose={() => setIsDocumentationModalOpen(false)}
+        bike={activeModalBike}
+        onUpdate={handleDocumentationUpdate}
       />
 
       {/* Footer */}

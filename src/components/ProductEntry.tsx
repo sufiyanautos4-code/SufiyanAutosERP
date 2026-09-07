@@ -34,6 +34,9 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   editingBike,
   onCancelEdit,
 }) => {
+  // Check if trying to edit a sold bike
+  const isSoldBike = editingBike && (editingBike.status === 'SOLD_FULL' || editingBike.status === 'SOLD_INSTALLMENT');
+  
   // Shop / Branch State for Sales
   const [shopName, setShopName] = useState<string>(() => {
     const saved = loadShopsFromStorage();
@@ -151,6 +154,13 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent editing sold bikes
+    if (isSoldBike) {
+      setErrors({ general: 'Cannot edit sold bikes. Please use the Product Detail view to update documentation status.' });
+      return;
+    }
+    
     if (!validate()) {
       return;
     }
@@ -252,8 +262,52 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
         </div>
       )}
 
+      {/* Sold Bike Warning - Cannot Edit */}
+      {isSoldBike && (
+        <div className="bg-rose-50 border border-rose-300 p-5 rounded-xl shadow-sm animate-in fade-in duration-200">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-rose-900 mb-1">
+                Cannot Edit Sold Vehicle
+              </h3>
+              <p className="text-xs text-rose-800 leading-relaxed mb-3">
+                This bike has been sold (Status: <strong>{editingBike.status === 'SOLD_FULL' ? 'Full Payment' : 'Installment'}</strong>) and its core details cannot be modified through the Product Entry form.
+                {editingBike.customer && ` Sold to: ${editingBike.customer.fullName}`}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <div className="text-[11px] bg-white border border-rose-200 px-3 py-1.5 rounded-lg">
+                  <strong>Invoice:</strong> {editingBike.saleInvoiceNumber || 'N/A'}
+                </div>
+                <div className="text-[11px] bg-white border border-rose-200 px-3 py-1.5 rounded-lg">
+                  <strong>Sale Date:</strong> {editingBike.saleDate || 'N/A'}
+                </div>
+                <div className="text-[11px] bg-white border border-rose-200 px-3 py-1.5 rounded-lg">
+                  <strong>Chassis:</strong> {editingBike.chassisNumber}
+                </div>
+              </div>
+              <p className="text-[11px] text-rose-700 mt-3 italic">
+                💡 <strong>Note:</strong> Documentation status can still be updated through the Product Detail view or Sales tab, but vehicle specifications, pricing, and customer information are locked to maintain sale record integrity.
+              </p>
+              {onCancelEdit && (
+                <button
+                  onClick={onCancelEdit}
+                  className="mt-3 flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition shadow-sm"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Return to Product List
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Entry Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        <fieldset disabled={isSoldBike} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* LEFT COLUMN: Vehicle Specs & Core Identification (7 cols on lg+) */}
@@ -292,7 +346,9 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                   if (errors.modelName) setErrors(prev => ({ ...prev, modelName: '' }));
                 }}
                 placeholder="Enter model name (e.g. Evee C1, Evee Nisa, Evee Gen-Z, Evee Pro)..."
+                disabled={isSoldBike}
                 className={`w-full bg-white border rounded-lg px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none transition ${
+                  isSoldBike ? 'bg-slate-100 text-slate-500 cursor-not-allowed' :
                   errors.modelName ? 'border-rose-500 focus:border-rose-500' : 'border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
                 }`}
               />
@@ -679,7 +735,12 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                 <button
                   id="save-evee-bike-btn"
                   type="submit"
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow-sm transition active:scale-95"
+                  disabled={isSoldBike}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 font-bold text-xs px-6 py-2.5 rounded-lg shadow-sm transition ${
+                    isSoldBike 
+                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-95'
+                  }`}
                 >
                   <Save className="w-4 h-4" />
                   <span>{editingBike ? 'Update Vehicle Record' : 'Save & Register Evee Bike'}</span>
@@ -690,6 +751,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
           </div>
 
         </div>
+        </fieldset>
       </form>
     </div>
   );
