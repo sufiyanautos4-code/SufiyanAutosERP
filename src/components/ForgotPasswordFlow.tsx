@@ -50,14 +50,23 @@ export const ForgotPasswordFlow: React.FC<ForgotPasswordFlowProps> = ({
     }
 
     setIsLoading(true);
-    const result = await requestPasswordResetOTP(email.trim());
-    setIsLoading(false);
+    
+    try {
+      const result = await requestPasswordResetOTP(email.trim());
+      setIsLoading(false);
 
-    if (result.success) {
-      setSuccessMessage(`A 4-digit verification code has been sent to ${email.trim()}`);
-      setStep('otp');
-    } else {
-      setError(result.error || 'Failed to send verification code. Please make sure the server is running (npm run server).');
+      console.log('Password reset OTP result:', result); // Debug log
+
+      if (result.success) {
+        setSuccessMessage(`A 4-digit verification code has been sent to ${email.trim()}`);
+        setStep('otp');
+      } else {
+        setError(result.error || result.message || 'Failed to send verification code. Please try again.');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      console.error('Error requesting OTP:', err);
+      setError('Network error. Please check your connection and try again.');
     }
   };
 

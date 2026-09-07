@@ -31,6 +31,8 @@ export async function requestPasswordResetOTP(
     const url = isProduction 
       ? `${API_BASE_URL}?action=request`
       : `${API_BASE_URL}/request`;
+    
+    console.log('Requesting OTP from:', url);
       
     const response = await fetch(url, {
       method: 'POST',
@@ -40,7 +42,24 @@ export async function requestPasswordResetOTP(
       body: JSON.stringify({ email, userName }),
     });
 
-    const data = await response.json();
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+    
+    const responseText = await response.text();
+    console.log('Response text:', responseText);
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return {
+        success: false,
+        error: 'Server returned invalid response: ' + responseText.substring(0, 100),
+      };
+    }
+    
+    console.log('Parsed data:', data);
     return data;
   } catch (error) {
     console.error('Request OTP error:', error);
