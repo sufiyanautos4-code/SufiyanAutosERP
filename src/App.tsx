@@ -286,11 +286,11 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
         <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center font-black text-xl mb-4 shadow-lg animate-pulse">
-          E
+          SA
         </div>
         <div className="flex items-center gap-2 text-slate-300 text-sm font-semibold">
           <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-          <span>Connecting to Firebase Cloud ERP...</span>
+          <span>Connecting to Sufiyan Autos ERP...</span>
         </div>
       </div>
     );

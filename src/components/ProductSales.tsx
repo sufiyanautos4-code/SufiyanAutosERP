@@ -385,35 +385,37 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
                     }`}
                   >
                     {/* Compact Header Row */}
-                    <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                       {/* Left: Vehicle & Customer Info */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
                         <span className="font-mono text-xs font-bold text-blue-600 shrink-0">
                           {bike.chassisNumber}
                         </span>
-                        <span className="text-slate-300 shrink-0">•</span>
+                        <span className="text-slate-300 shrink-0 hidden sm:inline">•</span>
                         <span className="font-semibold text-xs text-slate-900 truncate">
                           {bike.modelName}
                         </span>
                         <span className="text-[10px] text-slate-500 shrink-0">({bike.color})</span>
-                        <span className="text-slate-300 shrink-0">|</span>
-                        <User className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span className="font-semibold text-xs text-slate-800 truncate">
-                          {bike.customer?.fullName}
-                        </span>
+                        <span className="text-slate-300 shrink-0 hidden sm:inline">|</span>
+                        <div className="flex items-center gap-1 min-w-0">
+                          <User className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="font-semibold text-xs text-slate-800 truncate">
+                            {bike.customer?.fullName}
+                          </span>
+                        </div>
                         {(bike.shopName || bike.saleShopName) && (
                           <>
-                            <span className="text-slate-300 shrink-0">•</span>
+                            <span className="text-slate-300 shrink-0 hidden sm:inline">•</span>
                             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-medium shrink-0">
                               <Store className="w-2.5 h-2.5" />
-                              {bike.shopName || bike.saleShopName}
+                              <span className="hidden xs:inline">{bike.shopName || bike.saleShopName}</span>
                             </span>
                           </>
                         )}
                       </div>
 
                       {/* Right: Status & Actions */}
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                         {isPaid ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
                             <CheckCircle2 className="w-3 h-3" />
@@ -456,34 +458,34 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
                     </div>
 
                     {/* Compact Financials Row */}
-                    <div className="flex items-center gap-3 text-[11px] mb-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 sm:gap-3 text-[10px] sm:text-[11px] mb-2 flex-wrap">
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Price:</span>
                         <span className="font-mono font-bold text-slate-900">{formatCurrency(plan.totalSalePrice)}</span>
                       </div>
-                      <span className="text-slate-300">|</span>
+                      <span className="text-slate-300 hidden sm:inline">|</span>
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Down:</span>
                         <span className="font-mono font-bold text-blue-600">{formatCurrency(plan.downPayment)}</span>
                       </div>
-                      <span className="text-slate-300">|</span>
+                      <span className="text-slate-300 hidden sm:inline">|</span>
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Paid:</span>
                         <span className="font-mono font-bold text-emerald-600">{formatCurrency(plan.totalPaid)}</span>
                       </div>
-                      <span className="text-slate-300">|</span>
+                      <span className="text-slate-300 hidden sm:inline">|</span>
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">Balance:</span>
                         <span className={`font-mono font-bold ${isPaid ? 'text-emerald-700' : 'text-amber-700'}`}>
                           {formatCurrency(plan.remainingBalance)}
                         </span>
                       </div>
-                      <span className="text-slate-300">|</span>
+                      <span className="text-slate-300 hidden sm:inline">|</span>
                       <div className="flex items-center gap-1">
                         <span className="text-slate-500">{completionPct}%</span>
                         <span className="text-slate-400">({plan.payments.length} pmts)</span>
                       </div>
-                      <span className="text-slate-300">|</span>
+                      <span className="text-slate-300 hidden sm:inline">|</span>
                       <div className="flex items-center gap-1">
                         <FileCheck className={`w-3 h-3 ${bike.documentationReceived ? 'text-emerald-600' : 'text-amber-500'}`} />
                         <span className={`text-[10px] font-semibold ${bike.documentationReceived ? 'text-emerald-700' : 'text-amber-700'}`}>
