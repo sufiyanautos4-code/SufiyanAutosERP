@@ -49,10 +49,19 @@ export const ReceivePaymentModal: React.FC<ReceivePaymentModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate payment amount
     if (paymentAmount <= 0) {
       setError('Payment amount must be greater than 0');
       return;
     }
+    
+    // Validate payment amount doesn't exceed remaining balance
+    if (paymentAmount > currentRemaining) {
+      setError(`Payment amount cannot exceed remaining balance of ${formatCurrency(currentRemaining)}`);
+      return;
+    }
+    
     if (!payerName.trim()) {
       setError('Payer / Customer Name is required');
       return;
@@ -174,7 +183,15 @@ export const ReceivePaymentModal: React.FC<ReceivePaymentModalProps> = ({
                 id="payment-amount-input"
                 type="number"
                 value={paymentAmount}
-                onChange={(e) => setPaymentAmount(Math.max(0, Number(e.target.value)))}
+                onChange={(e) => {
+                  const value = Math.max(0, Number(e.target.value));
+                  // Cap at remaining balance
+                  const cappedValue = Math.min(value, currentRemaining);
+                  setPaymentAmount(cappedValue);
+                  // Clear error when user corrects the amount
+                  if (error) setError('');
+                }}
+                max={currentRemaining}
                 className="w-full bg-white border border-slate-300 rounded-lg pl-12 pr-4 py-2 text-base font-mono font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 step="500"
               />

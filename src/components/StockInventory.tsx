@@ -351,7 +351,7 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
             <div className="flex items-baseline gap-2">
               <div className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight">{inStockCount}</div>
               <span className="text-xs font-semibold text-emerald-700">
-                ({bikes.length > 0 ? Math.round((inStockCount / bikes.length) * 100) : 0}% of fleet)
+                ({bikes.length > 0 ? Math.round((inStockCount / bikes.length) * 100) : 0}% of stock)
               </span>
             </div>
             <div className="text-xs text-slate-500 mt-1 font-medium">
