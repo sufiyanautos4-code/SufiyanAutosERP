@@ -615,13 +615,13 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <button
+                              {/* <button
                                 onClick={() => onSelectBike(bike)}
                                 className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs border border-slate-200"
                                 title="View Record"
                               >
                                 <Eye className="w-3.5 h-3.5" />
-                              </button>
+                              </button> */}
                               <button
                                 onClick={() => onPrintInvoice(bike)}
                                 className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs border border-slate-200"
