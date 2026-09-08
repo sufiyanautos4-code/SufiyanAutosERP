@@ -1041,9 +1041,9 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-slate-800">
+            <div id="printable-placard" className="p-6 space-y-4 text-slate-800">
               <div className="text-center pb-4 border-b border-slate-200">
-                <div className="text-xs font-bold uppercase tracking-wider text-blue-600">EVEE ELECTRIC VEHICLES</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-blue-600">Sufiyan Autos VEHICLES</div>
                 <h2 className="text-2xl font-black text-slate-900 mt-1">{selectedPlacardBike.modelName}</h2>
                 <p className="text-xs text-slate-500">Color: {selectedPlacardBike.color} • Frame VIN: {selectedPlacardBike.chassisNumber}</p>
               </div>
@@ -1078,7 +1078,79 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
 
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
               <button
-                onClick={() => window.print()}
+                onClick={() => {
+                  const placardContent = document.getElementById('printable-placard');
+                  if (!placardContent) return;
+
+                  const styles = Array.from(document.styleSheets)
+                    .map(styleSheet => {
+                      try {
+                        return Array.from(styleSheet.cssRules)
+                          .map(rule => rule.cssText)
+                          .join('\n');
+                      } catch (e) {
+                        return '';
+                      }
+                    })
+                    .join('\n');
+
+                  const printWindow = window.open('', '_blank', 'width=600,height=800');
+                  if (!printWindow) {
+                    alert('Please allow pop-ups to print the placard');
+                    return;
+                  }
+
+                  printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <meta charset="utf-8">
+                        <title>Price Placard - ${selectedPlacardBike?.chassisNumber || 'EVEE'}</title>
+                        <style>
+                          ${styles}
+                          * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                          }
+                          body {
+                            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                            background: white;
+                            color: #1e293b;
+                            padding: 20px;
+                            margin: 0;
+                          }
+                          * {
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                          }
+                          @media print {
+                            body {
+                              padding: 10px;
+                              margin: 0;
+                            }
+                            @page {
+                              margin: 0.25in;
+                              size: A5 portrait;
+                            }
+                          }
+                        </style>
+                      </head>
+                      <body>
+                        ${placardContent.innerHTML}
+                      </body>
+                    </html>
+                  `);
+
+                  printWindow.document.close();
+                  printWindow.onload = () => {
+                    setTimeout(() => {
+                      printWindow.focus();
+                      printWindow.print();
+                      printWindow.close();
+                    }, 500);
+                  };
+                }}
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 shadow-sm"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -1107,7 +1179,79 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    const auditContent = document.getElementById('printable-audit-manifest');
+                    if (!auditContent) return;
+
+                    const styles = Array.from(document.styleSheets)
+                      .map(styleSheet => {
+                        try {
+                          return Array.from(styleSheet.cssRules)
+                            .map(rule => rule.cssText)
+                            .join('\n');
+                        } catch (e) {
+                          return '';
+                        }
+                      })
+                      .join('\n');
+
+                    const printWindow = window.open('', '_blank', 'width=900,height=700');
+                    if (!printWindow) {
+                      alert('Please allow pop-ups to print the audit report');
+                      return;
+                    }
+
+                    printWindow.document.write(`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <meta charset="utf-8">
+                          <title>Stock Inventory Audit - ${new Date().toISOString().slice(0,10)}</title>
+                          <style>
+                            ${styles}
+                            * {
+                              margin: 0;
+                              padding: 0;
+                              box-sizing: border-box;
+                            }
+                            body {
+                              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                              background: white;
+                              color: #1e293b;
+                              padding: 0;
+                              margin: 0;
+                            }
+                            * {
+                              -webkit-print-color-adjust: exact !important;
+                              print-color-adjust: exact !important;
+                            }
+                            @media print {
+                              body {
+                                padding: 0;
+                                margin: 0;
+                              }
+                              @page {
+                                margin: 0.5in;
+                                size: A4 portrait;
+                              }
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          ${auditContent.innerHTML}
+                        </body>
+                      </html>
+                    `);
+
+                    printWindow.document.close();
+                    printWindow.onload = () => {
+                      setTimeout(() => {
+                        printWindow.focus();
+                        printWindow.print();
+                        printWindow.close();
+                      }, 500);
+                    };
+                  }}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -1122,66 +1266,293 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
               </div>
             </div>
 
-            <div className="p-8 space-y-6 overflow-y-auto bg-white text-slate-900 print:p-6 print:overflow-visible">
+            <div className="overflow-y-auto flex-1 print:overflow-visible">
+              <div id="printable-audit-manifest" className="bg-white text-slate-900" style={{
+                maxWidth: '210mm',
+                minHeight: '297mm',
+                padding: '15mm 12mm',
+                margin: '0 auto',
+                fontSize: '10pt',
+                lineHeight: '1.5',
+                color: '#1e293b',
+                backgroundColor: 'white'
+              }}>
               
               {/* Audit Header */}
-              <div className="flex items-start justify-between border-b-2 border-blue-600 pb-4">
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                borderBottom: '3px solid #2563eb',
+                paddingBottom: '15px',
+                marginBottom: '20px'
+              }}>
                 <div>
-                  <h1 className="text-2xl font-black tracking-tight text-slate-900">EVEE ELECTRIC BIKES</h1>
-                  <p className="text-xs uppercase tracking-wider text-slate-500 font-semibold mt-0.5">
+                  <h1 style={{
+                    fontSize: '24px',
+                    fontWeight: '900',
+                    color: '#0f172a',
+                    margin: '0',
+                    letterSpacing: '-0.5px'
+                  }}>
+                    Sufiyan Autos
+                  </h1>
+                  <p style={{
+                    fontSize: '10px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    color: '#64748b',
+                    fontWeight: '600',
+                    margin: '4px 0 0 0'
+                  }}>
                     Official Physical Stock Audit & Inventory Manifest
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-1">Showroom & Warehouse Inventory Control Sheet</p>
+                  <p style={{
+                    fontSize: '9px',
+                    color: '#64748b',
+                    margin: '4px 0 0 0'
+                  }}>
+                    Showroom & Warehouse Inventory Control Sheet
+                  </p>
                 </div>
-                <div className="text-right text-xs">
-                  <div className="font-mono font-bold text-blue-700">AUDIT REF: {new Date().toISOString().slice(0,10)}</div>
-                  <div className="text-slate-500 mt-0.5">Generated: {new Date().toLocaleString()}</div>
+                <div style={{ textAlign: 'right', fontSize: '10px' }}>
+                  <div style={{
+                    fontFamily: 'monospace',
+                    fontWeight: '700',
+                    color: '#1d4ed8',
+                    marginBottom: '4px'
+                  }}>
+                    AUDIT REF: {new Date().toISOString().slice(0,10)}
+                  </div>
+                  <div style={{ color: '#64748b' }}>
+                    Generated: {new Date().toLocaleString()}
+                  </div>
                 </div>
               </div>
 
-              {/* Summary Stats in Print */}
-              <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+              {/* Summary Stats */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr 1fr',
+                gap: '12px',
+                backgroundColor: '#f8fafc',
+                padding: '15px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '20px'
+              }}>
                 <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Total Fleet</span>
-                  <span className="text-lg font-bold text-slate-900">{bikes.length} units</span>
+                  <span style={{
+                    fontSize: '9px',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    fontWeight: '700',
+                    display: 'block',
+                    marginBottom: '4px'
+                  }}>
+                    Total Fleet
+                  </span>
+                  <span style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#0f172a'
+                  }}>
+                    {bikes.length} units
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-emerald-700 uppercase font-bold block">Physical In-Stock</span>
-                  <span className="text-lg font-bold text-emerald-700">{inStockCount} units</span>
+                  <span style={{
+                    fontSize: '9px',
+                    color: '#059669',
+                    textTransform: 'uppercase',
+                    fontWeight: '700',
+                    display: 'block',
+                    marginBottom: '4px'
+                  }}>
+                    Physical In-Stock
+                  </span>
+                  <span style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#059669'
+                  }}>
+                    {inStockCount} units
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-blue-700 uppercase font-bold block">Units Sold</span>
-                  <span className="text-lg font-bold text-blue-700">{totalSoldCount} units</span>
+                  <span style={{
+                    fontSize: '9px',
+                    color: '#1d4ed8',
+                    textTransform: 'uppercase',
+                    fontWeight: '700',
+                    display: 'block',
+                    marginBottom: '4px'
+                  }}>
+                    Units Sold
+                  </span>
+                  <span style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#1d4ed8'
+                  }}>
+                    {totalSoldCount} units
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">In-Stock Capital</span>
-                  <span className="text-lg font-bold text-slate-900 font-mono">{formatCurrency(totalInStockPurchaseCost)}</span>
+                  <span style={{
+                    fontSize: '9px',
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    fontWeight: '700',
+                    display: 'block',
+                    marginBottom: '4px'
+                  }}>
+                    In-Stock Capital
+                  </span>
+                  <span style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: '#0f172a',
+                    fontFamily: 'monospace'
+                  }}>
+                    {formatCurrency(totalInStockPurchaseCost)}
+                  </span>
                 </div>
               </div>
 
               {/* Model Breakdown Table */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">Model Type Counts</h4>
-                <table className="w-full text-xs text-left border border-slate-200">
-                  <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                    <tr>
-                      <th className="p-2">Model Type</th>
-                      <th className="p-2 text-center">Acquired</th>
-                      <th className="p-2 text-center">In Stock</th>
-                      <th className="p-2 text-center">Sold</th>
-                      <th className="p-2">Available Colors</th>
-                      <th className="p-2 text-right">Stock Value</th>
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  color: '#334155',
+                  marginBottom: '10px'
+                }}>
+                  Model Type Counts
+                </h4>
+                <table style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontSize: '10px',
+                  border: '1px solid #cbd5e1'
+                }}>
+                  <thead>
+                    <tr style={{
+                      backgroundColor: '#f8fafc',
+                      borderBottom: '2px solid #cbd5e1'
+                    }}>
+                      <th style={{
+                        padding: '10px 8px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '9px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Model Type
+                      </th>
+                      <th style={{
+                        padding: '10px 8px',
+                        textAlign: 'center',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '9px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Acquired
+                      </th>
+                      <th style={{
+                        padding: '10px 8px',
+                        textAlign: 'center',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '9px',
+                        textTransform: 'uppercase'
+                      }}>
+                        In Stock
+                      </th>
+                      <th style={{
+                        padding: '10px 8px',
+                        textAlign: 'center',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '9px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Sold
+                      </th>
+                      <th style={{
+                        padding: '10px 8px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '9px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Available Colors
+                      </th>
+                      <th style={{
+                        padding: '10px 8px',
+                        textAlign: 'right',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '9px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Stock Value
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody>
                     {modelDetailedMatrix.map(m => (
-                      <tr key={m.modelName}>
-                        <td className="p-2 font-bold">{m.modelName}</td>
-                        <td className="p-2 text-center">{m.total}</td>
-                        <td className="p-2 text-center font-bold text-emerald-700">{m.inStock}</td>
-                        <td className="p-2 text-center">{m.sold}</td>
-                        <td className="p-2 text-[11px]">{Object.entries(m.colorsInStock).map(([c, qty]) => `${c} (${qty})`).join(', ') || 'None'}</td>
-                        <td className="p-2 text-right font-mono">{formatCurrency(m.stockValue)}</td>
+                      <tr key={m.modelName} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{
+                          padding: '10px 8px',
+                          fontWeight: '700',
+                          color: '#0f172a'
+                        }}>
+                          {m.modelName}
+                        </td>
+                        <td style={{
+                          padding: '10px 8px',
+                          textAlign: 'center',
+                          color: '#475569'
+                        }}>
+                          {m.total}
+                        </td>
+                        <td style={{
+                          padding: '10px 8px',
+                          textAlign: 'center',
+                          fontWeight: '700',
+                          color: '#059669'
+                        }}>
+                          {m.inStock}
+                        </td>
+                        <td style={{
+                          padding: '10px 8px',
+                          textAlign: 'center',
+                          color: '#475569'
+                        }}>
+                          {m.sold}
+                        </td>
+                        <td style={{
+                          padding: '10px 8px',
+                          fontSize: '9px',
+                          color: '#475569'
+                        }}>
+                          {Object.entries(m.colorsInStock).map(([c, qty]) => `${c} (${qty})`).join(', ') || 'None'}
+                        </td>
+                        <td style={{
+                          padding: '10px 8px',
+                          textAlign: 'right',
+                          fontFamily: 'monospace',
+                          color: '#0f172a',
+                          fontWeight: '600'
+                        }}>
+                          {formatCurrency(m.stockValue)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1189,35 +1560,173 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
               </div>
 
               {/* Chassis Inventory Manifest */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">Complete Chassis (VIN) Audit List</h4>
-                <table className="w-full text-[11px] text-left border border-slate-200">
-                  <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                    <tr>
-                      <th className="p-1.5">#</th>
-                      <th className="p-1.5">Chassis Number (VIN)</th>
-                      <th className="p-1.5">Model</th>
-                      <th className="p-1.5">Color</th>
-                      <th className="p-1.5">Battery & Motor</th>
-                      <th className="p-1.5 font-mono">Cost (PKR)</th>
-                      <th className="p-1.5">Status</th>
-                      <th className="p-1.5 text-center">Physical Verified [✓]</th>
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  color: '#334155',
+                  marginBottom: '10px'
+                }}>
+                  Complete Chassis (VIN) Audit List
+                </h4>
+                <table style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontSize: '9px',
+                  border: '1px solid #cbd5e1'
+                }}>
+                  <thead>
+                    <tr style={{
+                      backgroundColor: '#f8fafc',
+                      borderBottom: '2px solid #cbd5e1'
+                    }}>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        #
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Chassis Number (VIN)
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Model
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Color
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Battery & Motor
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'right',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase',
+                        fontFamily: 'monospace'
+                      }}>
+                        Cost (PKR)
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'left',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Status
+                      </th>
+                      <th style={{
+                        padding: '8px 6px',
+                        textAlign: 'center',
+                        fontWeight: '600',
+                        color: '#475569',
+                        fontSize: '8px',
+                        textTransform: 'uppercase'
+                      }}>
+                        Physical Verified [✓]
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {bikes.map((b, idx) => (
-                      <tr key={b.id}>
-                        <td className="p-1.5 text-slate-400">{idx + 1}</td>
-                        <td className="p-1.5 font-mono font-bold text-blue-700">{b.chassisNumber}</td>
-                        <td className="p-1.5 font-semibold">{b.modelName}</td>
-                        <td className="p-1.5">{b.color}</td>
-                        <td className="p-1.5 text-[10px]">{b.batteryCapacity || 'Graphene'} • {b.motorPowerWatts || 1200}W</td>
-                        <td className="p-1.5 font-mono">{formatCurrency(b.purchasePrice)}</td>
-                        <td className="p-1.5 font-semibold">
+                      <tr key={b.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{
+                          padding: '8px 6px',
+                          color: '#94a3b8'
+                        }}>
+                          {idx + 1}
+                        </td>
+                        <td style={{
+                          padding: '8px 6px',
+                          fontFamily: 'monospace',
+                          fontWeight: '700',
+                          color: '#1d4ed8',
+                          fontSize: '9px'
+                        }}>
+                          {b.chassisNumber}
+                        </td>
+                        <td style={{
+                          padding: '8px 6px',
+                          fontWeight: '600',
+                          color: '#0f172a'
+                        }}>
+                          {b.modelName}
+                        </td>
+                        <td style={{
+                          padding: '8px 6px',
+                          color: '#475569'
+                        }}>
+                          {b.color}
+                        </td>
+                        <td style={{
+                          padding: '8px 6px',
+                          fontSize: '8px',
+                          color: '#475569'
+                        }}>
+                          {b.batteryCapacity || 'Graphene'} • {b.motorPowerWatts || 1200}W
+                        </td>
+                        <td style={{
+                          padding: '8px 6px',
+                          fontFamily: 'monospace',
+                          textAlign: 'right',
+                          color: '#0f172a',
+                          fontSize: '9px'
+                        }}>
+                          {formatCurrency(b.purchasePrice)}
+                        </td>
+                        <td style={{
+                          padding: '8px 6px',
+                          fontWeight: '600',
+                          color: '#475569',
+                          fontSize: '8px'
+                        }}>
                           {b.status === 'IN_STOCK' ? 'IN STOCK' : b.status === 'SOLD_FULL' ? 'SOLD (CASH)' : 'INSTALLMENT'}
                         </td>
-                        <td className="p-1.5 text-center border-l border-slate-200">
-                          [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+                        <td style={{
+                          padding: '8px 6px',
+                          textAlign: 'center',
+                          borderLeft: '1px solid #e2e8f0',
+                          fontFamily: 'monospace'
+                        }}>
+                          [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
                         </td>
                       </tr>
                     ))}
@@ -1226,18 +1735,65 @@ export const StockInventory: React.FC<StockInventoryProps> = ({
               </div>
 
               {/* Audit Verification Signatures */}
-              <div className="pt-8 grid grid-cols-2 gap-12 text-center text-xs text-slate-500">
-                <div className="border-t border-slate-300 pt-2">
-                  <p className="font-semibold text-slate-800">Inventory Stock Controller / Auditor</p>
-                  <p className="text-[10px]">Signature & Date</p>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '60px',
+                marginTop: '50px',
+                paddingTop: '20px'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    borderTop: '2px solid #94a3b8',
+                    paddingTop: '10px',
+                    marginBottom: '6px'
+                  }}>
+                    <p style={{
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      fontSize: '10px',
+                      margin: '0'
+                    }}>
+                      Inventory Stock Controller / Auditor
+                    </p>
+                  </div>
+                  <p style={{
+                    fontSize: '8px',
+                    color: '#64748b',
+                    margin: '0'
+                  }}>
+                    Signature & Date
+                  </p>
                 </div>
-                <div className="border-t border-slate-300 pt-2">
-                  <p className="font-semibold text-slate-800">Showroom General Manager</p>
-                  <p className="text-[10px]">Verification & Stamp</p>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    borderTop: '2px solid #94a3b8',
+                    paddingTop: '10px',
+                    marginBottom: '6px'
+                  }}>
+                    <p style={{
+                      fontWeight: '600',
+                      color: '#0f172a',
+                      fontSize: '10px',
+                      margin: '0'
+                    }}>
+                      Showroom General Manager
+                    </p>
+                  </div>
+                  <p style={{
+                    fontSize: '8px',
+                    color: '#64748b',
+                    margin: '0'
+                  }}>
+                    Verification & Stamp
+                  </p>
                 </div>
               </div>
 
+              </div>
+              {/* End of printable-audit-manifest */}
             </div>
+            {/* End of scrollable container */}
           </div>
         </div>
       )}
