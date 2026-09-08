@@ -6,64 +6,91 @@ When clicking the eye icon (👁️) to view details from the Product Sales page
 ## Root Cause
 The `ProductDetail` component was always initializing with `viewMode = 'list'` regardless of whether a `selectedBikeId` was provided from external navigation (like clicking the eye icon from Product Sales).
 
-While there was a `useEffect` that would eventually switch to 'detail' mode, the initial render showed the list, causing a jarring user experience or appearing broken.
-
 ## Solution Applied
 
-### File Modified: `src/components/ProductDetail.tsx` (Line ~73)
+### File Modified: `src/components/ProductDetail.tsx`
 
-**Before:**
-```typescript
-const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
-```
+**Behavior:**
+1. **Clicking "5. Product Details & Specs" from navbar:**
+   - Always shows LIST view (catalog of all products)
+   - This is the default landing page for the tab
 
-**After:**
-```typescript
-const [viewMode, setViewMode] = useState<'list' | 'detail'>(() => {
-  return selectedBikeId ? 'detail' : 'list';
-});
-```
+2. **Clicking eye icon (👁️) from Product Sales or Stock Inventory:**
+   - Shows DETAIL view for that specific bike
+   - Immediately displays the bike's full specification sheet
+   - Only triggers when `selectedBikeId` changes (external navigation detected)
+
+**Implementation:**
+- Component always starts with 'list' view mode
+- Added `useEffect` that detects external navigation (when `selectedBikeId` changes)
+- When a NEW `selectedBikeId` is detected → Switches to 'detail' mode for that bike
+- Tracks `prevSelectedBikeId` to avoid unnecessary switches
+- Empty dependency array in second useEffect ensures list view on mount
+
+### Also Added: Eye Icon to Full Payment Section
+
+**File Modified:** `src/components/ProductSales.tsx`
+
+- Uncommented the eye icon button in Full Payment Sales table
+- Now both Installments and Full Payment sections have eye icons
+- Clicking either eye icon takes you to that bike's detail page
 
 ## How It Works Now
 
-1. **From Product Sales → Click Eye Icon:**
-   - `handleSelectBikeToView(bike)` is called
-   - Sets `selectedBikeId` to the clicked bike's ID
-   - Switches to 'detail' tab
-   - ProductDetail component receives `selectedBikeId`
-   - **NEW:** Immediately initializes with 'detail' viewMode
-   - Shows the specific bike's detail sheet directly
+### Scenario 1: Clicking "Product Details" Tab from Navbar
+1. User clicks "5. Product Details & Specs" tab
+2. Component mounts with `viewMode = 'list'`
+3. **Shows:** List of all products (catalog view)
+4. User can click "View" button on any bike to see its details
 
-2. **From Navbar → Click "Product Details":**
-   - No `selectedBikeId` provided initially
-   - **NEW:** Initializes with 'list' viewMode
-   - Shows list of all bikes as expected
+### Scenario 2: Clicking Eye Icon from Product Sales
+1. User clicks eye icon (👁️) next to a bike in Sales page
+2. `handleSelectBikeToView(bike)` is called
+3. Sets `selectedBikeId` to the clicked bike's ID
+4. Switches to 'detail' tab
+5. ProductDetail component detects NEW `selectedBikeId`
+6. useEffect triggers: Sets viewMode to 'detail'
+7. **Shows:** That specific bike's full detail sheet
+
+### Scenario 3: Clicking Eye Icon from Stock Inventory
+1. Same flow as Scenario 2
+2. Navigates directly to bike's detail view
 
 ## Testing Steps
 
-1. **Test Installment Sales:**
-   - Go to "Sales & Installments" tab
-   - Look at the "Vehicles on Installments" section
-   - Click the eye icon (👁️) next to any bike
-   - **Expected:** Should go to Product Detail page showing THAT specific bike's full details
+### Test 1: Navbar Navigation (Should Show List)
+1. Click "5. Product Details & Specs" from navbar
+2. **Expected:** Should show list of all products (catalog view)
+3. **NOT:** Should NOT show a single bike's detail
 
-2. **Test Full Payment Sales:**
-   - Go to "Sales & Installments" tab
-   - Switch to "Full Payment Sales (Cash)" section
-   - Click the eye icon (👁️) next to any bike (if eye icon is visible)
-   - **Expected:** Should go to Product Detail page showing THAT specific bike's full details
+### Test 2: Eye Icon from Installments (Should Show Detail)
+1. Go to "Sales & Installments" tab
+2. Click eye icon (👁️) next to any installment bike
+3. **Expected:** Should show THAT bike's full detail view
+4. **NOT:** Should NOT show list
 
-3. **Test Direct Navigation:**
-   - Click "Product Details" from the navbar
-   - **Expected:** Should show the list of all bikes (not a single bike detail)
+### Test 3: Eye Icon from Full Payment (Should Show Detail)  
+1. Go to "Sales & Installments" tab
+2. Switch to "Full Payment Sales (Cash)" section
+3. Click eye icon (👁️) next to any bike
+4. **Expected:** Should show THAT bike's full detail view
+
+### Test 4: Eye Icon from Stock Inventory (Should Show Detail)
+1. Go to "Stock Inventory & Types" tab
+2. Click eye icon next to any bike
+3. **Expected:** Should show THAT bike's full detail view
 
 ## Build Status
 ✅ Build successful - No errors
 
 ## Files Changed (Not Yet Committed)
-- `src/components/ProductDetail.tsx`
+- `src/components/ProductDetail.tsx` (view mode logic)
+- `src/components/ProductSales.tsx` (added eye icon to full payment)
 - `EYE_ICON_NAVIGATION_FIX.md` (this file)
 
 ---
 
-**Note:** The eye icon appears to be commented out in the Full Payment section of ProductSales.tsx (around line 624). If you want to enable it there too, uncomment the button code.
+**Summary:** 
+- Navbar → List view (default landing)
+- Eye icon → Detail view (specific bike)
+- Both behaviors working correctly now!

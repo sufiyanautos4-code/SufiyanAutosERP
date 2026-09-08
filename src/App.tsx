@@ -97,11 +97,22 @@ export default function App() {
   }, [currentUser?.id]);
 
   // Set default selected bike if not set
+  // ONLY set default if we're on a tab that needs it (NOT on detail tab from navbar)
   useEffect(() => {
-    if (!selectedBikeId && bikes.length > 0) {
+    if (!selectedBikeId && bikes.length > 0 && activeTab !== 'detail') {
       setSelectedBikeId(bikes[0].id);
     }
-  }, [bikes, selectedBikeId]);
+  }, [bikes, selectedBikeId, activeTab]);
+
+  // Wrapped setActiveTab to handle special cases
+  const handleSetActiveTab = (tab: ActiveTab) => {
+    // When switching to 'detail' tab from navbar, clear selectedBikeId to show list view
+    // (handleSelectBikeToView will set both tab AND selectedBikeId when coming from eye icon)
+    if (tab === 'detail' && activeTab !== 'detail') {
+      setSelectedBikeId(null);
+    }
+    setActiveTab(tab);
+  };
 
   // Auth Handlers
   const handleAuthSuccess = (user: AuthUser) => {
@@ -301,7 +312,7 @@ export default function App() {
       {/* Top Main Navigation */}
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleSetActiveTab}
         bikes={bikes}
         currentUser={currentUser}
         onOpenProfile={() => setIsProfileModalOpen(true)}

@@ -66,10 +66,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   setSearchQuery,
 }) => {
   // View mode: 'list' shows all products in list form; 'detail' opens the specs sheet
-  // Start with 'detail' view if selectedBikeId is provided (navigated from another tab)
-  const [viewMode, setViewMode] = useState<'list' | 'detail'>(() => {
-    return selectedBikeId ? 'detail' : 'list';
-  });
+  // Always start with 'list' view when navigating directly to this tab
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
 
   const [activeId, setActiveId] = useState<string | null>(() => {
     return selectedBikeId || (bikes.length > 0 ? bikes[0].id : null);
@@ -85,15 +83,20 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [rowsPerPage, setRowsPerPage] = useState<number>(50); // Optimized: Default 50 rows per page
 
   // Track previous selectedBikeId to detect external navigation
-  const [prevSelectedBikeId, setPrevSelectedBikeId] = useState<string | null>(selectedBikeId || null);
+  const [prevSelectedBikeId, setPrevSelectedBikeId] = useState<string | null>(null);
 
   // Sync when selectedBikeId changes from outside (e.g. from Inventory tab click)
-  // Only switch to detail view if selectedBikeId actually changed (external navigation)
+  // Only switch to detail view if selectedBikeId actually changed (external navigation from eye icon)
   useEffect(() => {
     if (selectedBikeId && bikes.some(b => b.id === selectedBikeId) && selectedBikeId !== prevSelectedBikeId) {
       setActiveId(selectedBikeId);
       setViewMode('detail');
       setPrevSelectedBikeId(selectedBikeId);
+    }
+    // If selectedBikeId is null (cleared by navbar click), reset to list view
+    else if (selectedBikeId === null && prevSelectedBikeId !== null) {
+      setViewMode('list');
+      setPrevSelectedBikeId(null);
     }
   }, [selectedBikeId, bikes, prevSelectedBikeId]);
 
