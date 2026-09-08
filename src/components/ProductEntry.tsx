@@ -731,7 +731,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
             </div>
 
             {/* SECTION 4.5: DOCUMENTATION TRACKING (OPTIONAL) */}
-            <div className="bg-white border border-emerald-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
+            {/* <div className="bg-white border border-emerald-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
                 <div>
                   <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -742,10 +742,10 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                     Track if bike documentation is received at time of registration
                   </p>
                 </div>
-              </div>
+              </div> */}
 
               {/* Documentation Received Toggle */}
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <div className="flex items-start gap-3 p-3 bg-emerald-50/50 border border-emerald-200 rounded-lg">
                   <input
                     type="checkbox"
@@ -763,8 +763,8 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                       Check if bike documentation (registration papers, transfer docs, etc.) is received during bike entry
                     </div>
                   </label>
-                </div>
-
+                </div> */}
+{/* 
                 {documentationReceived && (
                   <div className="pl-7 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div>
@@ -804,7 +804,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                   <strong>Note:</strong> Documentation status can be updated anytime after registration through the Product Detail view or Sales tab.
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* SECTION 5: NOTES & ACTION BUTTONS */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm space-y-4">

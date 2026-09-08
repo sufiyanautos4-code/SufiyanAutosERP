@@ -66,8 +66,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   setSearchQuery,
 }) => {
   // View mode: 'list' shows all products in list form; 'detail' opens the specs sheet
-  // Always start with 'list' view when navigating to this tab
-  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
+  // Start with 'detail' view if selectedBikeId is provided (navigated from another tab)
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>(() => {
+    return selectedBikeId ? 'detail' : 'list';
+  });
 
   const [activeId, setActiveId] = useState<string | null>(() => {
     return selectedBikeId || (bikes.length > 0 ? bikes[0].id : null);
