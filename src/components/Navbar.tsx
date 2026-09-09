@@ -143,14 +143,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
-              <button
+              {/* <button
                 id="clear-all-data-btn"
                 onClick={onClearData}
                 title="Clear All Inventory Data (Wipe to Empty)"
                 className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition"
               >
                 <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
+              </button> */}
               <button
                 id="reset-data-btn"
                 onClick={onResetData}
