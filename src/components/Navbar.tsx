@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo & Brand */}
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => setActiveTab('stock')}>
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-sm">
-              E
+              SA
             </div>
             <div>
               <div className="flex items-center gap-1.5 sm:gap-2">
