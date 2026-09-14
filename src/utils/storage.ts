@@ -91,3 +91,60 @@ export function addShopToStorage(newShopName: string, currentUser?: AuthUser | n
   }
   return current;
 }
+
+// ==========================================
+// CUSTOM MODEL NAMES STORAGE
+// ==========================================
+
+export function loadCustomModelNames(userId?: string | null): string[] {
+  if (!userId) return [];
+  try {
+    const stored = localStorage.getItem(`evee_custom_models_${userId}`);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (err) {
+    console.error('Error loading custom model names from localStorage:', err);
+  }
+  return [];
+}
+
+export function saveCustomModelNames(models: string[], userId?: string | null): void {
+  if (!userId) return;
+  try {
+    const cleaned = Array.from(new Set(models.map(m => m.trim()).filter(Boolean)));
+    localStorage.setItem(`evee_custom_models_${userId}`, JSON.stringify(cleaned));
+  } catch (err) {
+    console.error('Error saving custom model names to localStorage:', err);
+  }
+}
+
+export function addCustomModelName(modelName: string, userId?: string | null): string[] {
+  const current = loadCustomModelNames(userId);
+  const trimmed = modelName.trim();
+  if (!trimmed) return current;
+  
+  // Check if model already exists (case-insensitive)
+  if (!current.some(m => m.toLowerCase() === trimmed.toLowerCase())) {
+    const updated = [...current, trimmed];
+    saveCustomModelNames(updated, userId);
+    return updated;
+  }
+  return current;
+}
+
+export function removeCustomModelName(modelName: string, userId?: string | null): string[] {
+  const current = loadCustomModelNames(userId);
+  const trimmed = modelName.trim();
+  const updated = current.filter(m => m.toLowerCase() !== trimmed.toLowerCase());
+  saveCustomModelNames(updated, userId);
+  return updated;
+}
+
+export function updateCustomModelName(oldName: string, newName: string, userId?: string | null): string[] {
+  const current = loadCustomModelNames(userId);
+  const updated = current.map(m => m.toLowerCase() === oldName.toLowerCase() ? newName.trim() : m);
+  saveCustomModelNames(updated, userId);
+  return updated;
+}

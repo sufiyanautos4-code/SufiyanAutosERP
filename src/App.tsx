@@ -366,6 +366,7 @@ export default function App() {
             onSaveBike={handleSaveBike}
             editingBike={editingBike}
             onCancelEdit={handleCancelEdit}
+            currentUser={currentUser}
           />
         )}
 

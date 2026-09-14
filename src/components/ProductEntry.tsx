@@ -18,16 +18,18 @@ import {
   FileCheck,
   Calendar
 } from 'lucide-react';
-import { EveeBike, VehicleStatus } from '../types';
+import { EveeBike, VehicleStatus, AuthUser } from '../types';
 import { formatCurrency, generateChassisNumber, generateInvoiceNumber } from '../utils/formatters';
-import { loadShopsFromStorage, addShopToStorage } from '../utils/storage';
+import { loadShopsFromStorage, addShopToStorage, loadCustomModelNames, addCustomModelName, removeCustomModelName } from '../utils/storage';
 import { ShopSelector } from './ShopSelector';
+import { ModelNameSelector } from './ModelNameSelector';
 
 interface ProductEntryProps {
   existingBikes: EveeBike[];
   onSaveBike: (bike: EveeBike) => void;
   editingBike?: EveeBike | null;
   onCancelEdit?: () => void;
+  currentUser?: AuthUser | null;
 }
 
 export const ProductEntry: React.FC<ProductEntryProps> = ({
@@ -35,6 +37,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   onSaveBike,
   editingBike,
   onCancelEdit,
+  currentUser,
 }) => {
   // Check if trying to edit a sold bike
   const isSoldBike = editingBike && (editingBike.status === 'SOLD_FULL' || editingBike.status === 'SOLD_INSTALLMENT');
@@ -44,6 +47,11 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
     const saved = loadShopsFromStorage();
     return saved.length > 0 ? saved[0] : '';
   });
+
+  // Custom Model Names State (loaded from localStorage)
+  const [customModelNames, setCustomModelNames] = useState<string[]>(() => 
+    loadCustomModelNames(currentUser?.id)
+  );
 
   // Form States - Model Name & Bike Variant
   const [modelName, setModelName] = useState<string>('');
@@ -236,9 +244,10 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   const profitMargin = sellingPrice - purchasePrice;
   const marginPercentage = purchasePrice > 0 ? Math.round((profitMargin / purchasePrice) * 100) : 0;
 
-  // Extract distinct models from existing inventory for clean auto-complete suggestion
+  // Extract distinct models from existing inventory + custom saved models for clean auto-complete suggestion
   const modelSuggestions = Array.from(
     new Set([
+      ...customModelNames, // Load saved custom models first
       ...existingBikes.map(b => b.modelName),
       'Evee C1',
       'Evee C1 Air',
@@ -248,6 +257,18 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
       'Evee Flipper'
     ].filter(Boolean))
   );
+
+  // Handler to add a new custom model name
+  const handleAddCustomModel = (modelName: string) => {
+    const updated = addCustomModelName(modelName, currentUser?.id);
+    setCustomModelNames(updated);
+  };
+
+  // Handler to remove a custom model name
+  const handleRemoveCustomModel = (modelName: string) => {
+    const updated = removeCustomModelName(modelName, currentUser?.id);
+    setCustomModelNames(updated);
+  };
 
   return (
     <div className="w-full max-w-[1720px] 2xl:max-w-[1920px] 3xl:max-w-[2400px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 sm:py-6 space-y-6">
@@ -360,35 +381,27 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                 </label>
                 <span className="text-[10px] text-slate-400">e.g. Evee C1, Evee Nisa</span>
               </div>
-              <input
-                id="model-name-input"
-                type="text"
-                list="model-suggestions-list"
-                value={modelName}
-                onChange={(e) => {
-                  setModelName(e.target.value);
+              <ModelNameSelector
+                currentModel={modelName}
+                onModelChange={(name) => {
+                  setModelName(name);
                   if (errors.modelName) setErrors(prev => ({ ...prev, modelName: '' }));
                 }}
-                placeholder="Enter model name (e.g. Evee C1, Evee Nisa, Evee Gen-Z, Evee Pro)..."
+                availableModels={modelSuggestions}
+                onAddModel={handleAddCustomModel}
+                onRemoveModel={handleRemoveCustomModel}
                 disabled={isSoldBike}
-                className={`w-full bg-white border rounded-lg px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none transition ${
-                  isSoldBike ? 'bg-slate-100 text-slate-500 cursor-not-allowed' :
-                  errors.modelName ? 'border-rose-500 focus:border-rose-500' : 'border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-                }`}
+                error={errors.modelName}
               />
-              <datalist id="model-suggestions-list">
-                {modelSuggestions.map(name => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
-              {errors.modelName ? (
+              {errors.modelName && (
                 <p className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3 shrink-0" />
                   {errors.modelName}
                 </p>
-              ) : (
+              )}
+              {!errors.modelName && (
                 <p className="text-[10px] text-slate-500 mt-1">
-                  Primary vehicle series / model title.
+                  Type freely or select from saved models. Click bike icon to manage list.
                 </p>
               )}
             </div>
