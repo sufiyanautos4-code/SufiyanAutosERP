@@ -403,7 +403,217 @@ export async function recordPaymentTransactionDoc(
 }
 
 // ==========================================
-// 4. FAST LOCAL BACKUP INITIALIZATION
+// 4. MODEL NAMES & COMPANY NAMES FIRESTORE OPERATIONS
+// ==========================================
+
+/**
+ * Real-time listener for user's custom model names in `users/{userId}/modelNames`
+ */
+export function subscribeModelNames(
+  userIdOrCb: string | ((modelNames: string[]) => void) | undefined,
+  onUpdateOrError?: ((modelNames: string[]) => void) | ((error: any) => void),
+  onError?: (error: any) => void
+): () => void {
+  let userId: string | undefined;
+  let onUpdate: (modelNames: string[]) => void;
+  let errCb: ((error: any) => void) | undefined;
+
+  if (typeof userIdOrCb === 'function') {
+    onUpdate = userIdOrCb;
+    errCb = onUpdateOrError as any;
+    userId = getLocalSessionUser()?.id;
+  } else {
+    userId = userIdOrCb;
+    onUpdate = onUpdateOrError as any;
+    errCb = onError;
+  }
+
+  if (!userId) {
+    if (onUpdate) onUpdate([]);
+    return () => {};
+  }
+
+  const modelNamesRef = collection(db, 'users', userId, 'modelNames');
+
+  return onSnapshot(
+    modelNamesRef,
+    (snapshot) => {
+      const names: string[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.name && typeof data.name === 'string') {
+          names.push(data.name.trim());
+        }
+      });
+
+      const uniqueNames = Array.from(new Set(names.filter(Boolean)));
+      
+      try {
+        localStorage.setItem(`evee_custom_model_names_${userId}`, JSON.stringify(uniqueNames));
+      } catch (err) {
+        console.warn('Model names cache write error:', err);
+      }
+
+      if (onUpdate) onUpdate(uniqueNames);
+    },
+    (err) => {
+      console.error('Firestore model names subscription error:', err);
+      if (errCb) errCb(err);
+    }
+  );
+}
+
+export async function addModelNameToFirestore(
+  modelName: string,
+  currentUser?: AuthUser | null
+): Promise<void> {
+  const activeUser = currentUser || getLocalSessionUser();
+  if (!activeUser?.id) return;
+  const trimmed = modelName.trim();
+  if (!trimmed) return;
+
+  const docId = trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const modelRef = doc(db, 'users', activeUser.id, 'modelNames', docId);
+  const nowIso = new Date().toISOString();
+
+  await setDoc(modelRef, {
+    id: docId,
+    name: trimmed,
+    createdBy: activeUser.id,
+    createdAt: nowIso,
+    updatedAt: nowIso
+  }, { merge: true });
+}
+
+export async function deleteModelNameFromFirestore(
+  modelName: string,
+  currentUser?: AuthUser | null
+): Promise<void> {
+  const activeUser = currentUser || getLocalSessionUser();
+  if (!activeUser?.id) return;
+  const trimmed = modelName.trim();
+  const docId = trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const modelRef = doc(db, 'users', activeUser.id, 'modelNames', docId);
+  await deleteDoc(modelRef);
+}
+
+/**
+ * Real-time listener for user's custom company names in `users/{userId}/companyNames`
+ */
+export function subscribeCompanyNames(
+  userIdOrCb: string | ((companyNames: string[]) => void) | undefined,
+  onUpdateOrError?: ((companyNames: string[]) => void) | ((error: any) => void),
+  onError?: (error: any) => void
+): () => void {
+  let userId: string | undefined;
+  let onUpdate: (companyNames: string[]) => void;
+  let errCb: ((error: any) => void) | undefined;
+
+  if (typeof userIdOrCb === 'function') {
+    onUpdate = userIdOrCb;
+    errCb = onUpdateOrError as any;
+    userId = getLocalSessionUser()?.id;
+  } else {
+    userId = userIdOrCb;
+    onUpdate = onUpdateOrError as any;
+    errCb = onError;
+  }
+
+  if (!userId) {
+    if (onUpdate) onUpdate([]);
+    return () => {};
+  }
+
+  const companyNamesRef = collection(db, 'users', userId, 'companyNames');
+
+  return onSnapshot(
+    companyNamesRef,
+    (snapshot) => {
+      const names: string[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (data.name && typeof data.name === 'string') {
+          names.push(data.name.trim());
+        }
+      });
+
+      const uniqueNames = Array.from(new Set(names.filter(Boolean)));
+      
+      try {
+        localStorage.setItem(`evee_custom_company_names_${userId}`, JSON.stringify(uniqueNames));
+      } catch (err) {
+        console.warn('Company names cache write error:', err);
+      }
+
+      if (onUpdate) onUpdate(uniqueNames);
+    },
+    (err) => {
+      console.error('Firestore company names subscription error:', err);
+      if (errCb) errCb(err);
+    }
+  );
+}
+
+export async function addCompanyNameToFirestore(
+  companyName: string,
+  currentUser?: AuthUser | null
+): Promise<void> {
+  const activeUser = currentUser || getLocalSessionUser();
+  if (!activeUser?.id) return;
+  const trimmed = companyName.trim();
+  if (!trimmed) return;
+
+  const docId = trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const companyRef = doc(db, 'users', activeUser.id, 'companyNames', docId);
+  const nowIso = new Date().toISOString();
+
+  await setDoc(companyRef, {
+    id: docId,
+    name: trimmed,
+    createdBy: activeUser.id,
+    createdAt: nowIso,
+    updatedAt: nowIso
+  }, { merge: true });
+}
+
+export async function deleteCompanyNameFromFirestore(
+  companyName: string,
+  currentUser?: AuthUser | null
+): Promise<void> {
+  const activeUser = currentUser || getLocalSessionUser();
+  if (!activeUser?.id) return;
+  const trimmed = companyName.trim();
+  const docId = trimmed.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const companyRef = doc(db, 'users', activeUser.id, 'companyNames', docId);
+  await deleteDoc(companyRef);
+}
+
+export function getCachedModelNames(userId?: string | null): string[] {
+  if (!userId) return [];
+  try {
+    const raw = localStorage.getItem(`evee_custom_model_names_${userId}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getCachedCompanyNames(userId?: string | null): string[] {
+  if (!userId) return [];
+  try {
+    const raw = localStorage.getItem(`evee_custom_company_names_${userId}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// ==========================================
+// 5. FAST LOCAL BACKUP INITIALIZATION
 // ==========================================
 
 export function getCachedBikes(userId?: string | null): EveeBike[] {

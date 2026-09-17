@@ -397,6 +397,7 @@ export default function App() {
             onPrintInvoice={(bike) => handleOpenPrintInvoice(bike)}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
+            currentUser={currentUser}
           />
         )}
       </main>

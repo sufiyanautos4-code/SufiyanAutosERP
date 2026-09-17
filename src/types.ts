@@ -46,6 +46,7 @@ export interface InstallmentPlan {
 export interface EveeBike {
   id: string;
   chassisNumber: string; // Unique Chassis / Frame Number
+  companyName: string; // e.g. 'Evee Motors', 'Jolta', 'Super Asia'
   modelName: string; // e.g. 'Evee C1', 'Evee C1 Air', 'Evee Nisa', 'Evee Gen-Z', 'Evee Pro'
   customBikeName?: string;
   color: string;

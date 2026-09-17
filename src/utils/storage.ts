@@ -8,7 +8,13 @@ import {
   deleteShopFromFirestore,
   updateShopInFirestore,
   getCachedBikes,
-  getCachedShops
+  getCachedShops,
+  addModelNameToFirestore,
+  deleteModelNameFromFirestore,
+  getCachedModelNames,
+  addCompanyNameToFirestore,
+  deleteCompanyNameFromFirestore,
+  getCachedCompanyNames
 } from '../services/firestoreService';
 
 export function loadBikesFromStorage(userId?: string | null): EveeBike[] {
@@ -97,30 +103,20 @@ export function addShopToStorage(newShopName: string, currentUser?: AuthUser | n
 // ==========================================
 
 export function loadCustomModelNames(userId?: string | null): string[] {
-  if (!userId) return [];
-  try {
-    const stored = localStorage.getItem(`evee_custom_models_${userId}`);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed : [];
-    }
-  } catch (err) {
-    console.error('Error loading custom model names from localStorage:', err);
-  }
-  return [];
+  return getCachedModelNames(userId);
 }
 
 export function saveCustomModelNames(models: string[], userId?: string | null): void {
   if (!userId) return;
   try {
     const cleaned = Array.from(new Set(models.map(m => m.trim()).filter(Boolean)));
-    localStorage.setItem(`evee_custom_models_${userId}`, JSON.stringify(cleaned));
+    localStorage.setItem(`evee_custom_model_names_${userId}`, JSON.stringify(cleaned));
   } catch (err) {
     console.error('Error saving custom model names to localStorage:', err);
   }
 }
 
-export function addCustomModelName(modelName: string, userId?: string | null): string[] {
+export function addCustomModelName(modelName: string, userId?: string | null, currentUser?: AuthUser | null): string[] {
   const current = loadCustomModelNames(userId);
   const trimmed = modelName.trim();
   if (!trimmed) return current;
@@ -129,16 +125,28 @@ export function addCustomModelName(modelName: string, userId?: string | null): s
   if (!current.some(m => m.toLowerCase() === trimmed.toLowerCase())) {
     const updated = [...current, trimmed];
     saveCustomModelNames(updated, userId);
+    
+    // Sync to Firestore
+    addModelNameToFirestore(trimmed, currentUser).catch(err => {
+      console.warn('Firestore model name save error:', err);
+    });
+    
     return updated;
   }
   return current;
 }
 
-export function removeCustomModelName(modelName: string, userId?: string | null): string[] {
+export function removeCustomModelName(modelName: string, userId?: string | null, currentUser?: AuthUser | null): string[] {
   const current = loadCustomModelNames(userId);
   const trimmed = modelName.trim();
   const updated = current.filter(m => m.toLowerCase() !== trimmed.toLowerCase());
   saveCustomModelNames(updated, userId);
+  
+  // Sync to Firestore
+  deleteModelNameFromFirestore(trimmed, currentUser).catch(err => {
+    console.warn('Firestore model name delete error:', err);
+  });
+  
   return updated;
 }
 
@@ -148,3 +156,63 @@ export function updateCustomModelName(oldName: string, newName: string, userId?:
   saveCustomModelNames(updated, userId);
   return updated;
 }
+
+// ==========================================
+// CUSTOM COMPANY NAMES STORAGE
+// ==========================================
+
+export function loadCustomCompanyNames(userId?: string | null): string[] {
+  return getCachedCompanyNames(userId);
+}
+
+export function saveCustomCompanyNames(companies: string[], userId?: string | null): void {
+  if (!userId) return;
+  try {
+    const cleaned = Array.from(new Set(companies.map(c => c.trim()).filter(Boolean)));
+    localStorage.setItem(`evee_custom_company_names_${userId}`, JSON.stringify(cleaned));
+  } catch (err) {
+    console.error('Error saving custom company names to localStorage:', err);
+  }
+}
+
+export function addCustomCompanyName(companyName: string, userId?: string | null, currentUser?: AuthUser | null): string[] {
+  const current = loadCustomCompanyNames(userId);
+  const trimmed = companyName.trim();
+  if (!trimmed) return current;
+  
+  // Check if company already exists (case-insensitive)
+  if (!current.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+    const updated = [...current, trimmed];
+    saveCustomCompanyNames(updated, userId);
+    
+    // Sync to Firestore
+    addCompanyNameToFirestore(trimmed, currentUser).catch(err => {
+      console.warn('Firestore company name save error:', err);
+    });
+    
+    return updated;
+  }
+  return current;
+}
+
+export function removeCustomCompanyName(companyName: string, userId?: string | null, currentUser?: AuthUser | null): string[] {
+  const current = loadCustomCompanyNames(userId);
+  const trimmed = companyName.trim();
+  const updated = current.filter(c => c.toLowerCase() !== trimmed.toLowerCase());
+  saveCustomCompanyNames(updated, userId);
+  
+  // Sync to Firestore
+  deleteCompanyNameFromFirestore(trimmed, currentUser).catch(err => {
+    console.warn('Firestore company name delete error:', err);
+  });
+  
+  return updated;
+}
+
+export function updateCustomCompanyName(oldName: string, newName: string, userId?: string | null): string[] {
+  const current = loadCustomCompanyNames(userId);
+  const updated = current.map(c => c.toLowerCase() === oldName.toLowerCase() ? newName.trim() : c);
+  saveCustomCompanyNames(updated, userId);
+  return updated;
+}
+

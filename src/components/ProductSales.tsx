@@ -23,7 +23,7 @@ import {
   Settings,
   FileCheck
 } from 'lucide-react';
-import { EveeBike, InstallmentPayment } from '../types';
+import { EveeBike, InstallmentPayment, AuthUser } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { loadShopsFromStorage } from '../utils/storage';
 import { matchesBikeSearch } from '../utils/searchMatcher';
@@ -37,6 +37,7 @@ interface ProductSalesProps {
   onPrintInvoice: (bike: EveeBike) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  currentUser?: AuthUser | null;
 }
 
 export const ProductSales: React.FC<ProductSalesProps> = ({
@@ -47,12 +48,13 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
   onPrintInvoice,
   searchQuery,
   setSearchQuery,
+  currentUser,
 }) => {
   const [salesSection, setSalesSection] = useState<'FULL_PAYMENT' | 'INSTALLMENTS'>('INSTALLMENTS');
   const [installmentStatusFilter, setInstallmentStatusFilter] = useState<'ALL' | 'ACTIVE' | 'PAID'>('ALL');
   const [selectedShopFilter, setSelectedShopFilter] = useState<string>('ALL');
   const [isManageShopsOpen, setIsManageShopsOpen] = useState<boolean>(false);
-  const [savedShops, setSavedShops] = useState<string[]>(() => loadShopsFromStorage());
+  const [savedShops, setSavedShops] = useState<string[]>(() => loadShopsFromStorage(currentUser?.id));
 
   // Filter sold bikes
   const fullPaymentBikes = bikes.filter(b => b.status === 'SOLD_FULL');
@@ -649,9 +651,10 @@ export const ProductSales: React.FC<ProductSalesProps> = ({
         isOpen={isManageShopsOpen}
         onClose={() => {
           setIsManageShopsOpen(false);
-          setSavedShops(loadShopsFromStorage());
+          setSavedShops(loadShopsFromStorage(currentUser?.id));
         }}
         onShopsUpdated={(shops) => setSavedShops(shops)}
+        currentUser={currentUser}
       />
 
     </div>

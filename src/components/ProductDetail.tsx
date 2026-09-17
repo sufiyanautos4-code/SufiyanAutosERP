@@ -255,7 +255,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   onClick={() => setViewMode('detail')}
                   className="self-start md:self-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-300 transition"
                 >
-                  <span>Open Selected: {activeBike.modelName}</span>
+                  <span>Open Selected: {activeBike.companyName ? `${activeBike.companyName} ` : ''}{activeBike.modelName}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -412,6 +412,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                                   <span className="font-bold text-slate-900 text-[11px] block group-hover:text-blue-600 transition truncate">
                                     {bike.modelName}
                                   </span>
+                                  {bike.companyName && (
+                                    <span className="text-[8px] text-blue-600 font-semibold truncate block">
+                                      {bike.companyName}
+                                    </span>
+                                  )}
                                   <span className="text-[9px] text-slate-500 font-medium truncate block">
                                     {bike.customBikeName && bike.customBikeName !== bike.modelName 
                                       ? bike.customBikeName 
@@ -635,7 +640,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   <span>Evee Vehicle Master Inspector & Specs Sheet</span>
                 </h1>
                 <p className="text-xs text-slate-500">
-                  Inspecting {activeBike.modelName} ({activeBike.chassisNumber})
+                  Inspecting {activeBike.companyName ? `${activeBike.companyName} ` : ''}{activeBike.modelName} ({activeBike.chassisNumber})
                 </p>
               </div>
             </div>
@@ -676,7 +681,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
               >
                 {bikes.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.chassisNumber} — {b.modelName} ({b.status === 'IN_STOCK' ? 'In Stock' : b.status === 'SOLD_FULL' ? 'Sold Cash' : 'Installment'})
+                    {b.chassisNumber} — {b.companyName ? `${b.companyName} ` : ''}{b.modelName} ({b.status === 'IN_STOCK' ? 'In Stock' : b.status === 'SOLD_FULL' ? 'Sold Cash' : 'Installment'})
                   </option>
                 ))}
               </select>
@@ -697,13 +702,23 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                        Evee Electric Motors
+                        Sufiyan Autos
                       </span>
                       <span className="text-slate-300">•</span>
                       <span className="text-xs text-slate-500 font-mono">
                         Registered {formatDate(activeBike.entryDate)}
                       </span>
                     </div>
+                    {activeBike.companyName && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          COMPANY NAME:
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">
+                          {activeBike.companyName}
+                        </span>
+                      </div>
+                    )}
                     <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{activeBike.modelName}</h2>
                     {activeBike.customBikeName && (
                       <p className="text-sm text-slate-600 font-medium mt-0.5">{activeBike.customBikeName}</p>

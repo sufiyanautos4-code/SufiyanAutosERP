@@ -2,27 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { 
   PlusCircle, 
   ShieldCheck, 
-  Sparkles, 
   Check, 
   AlertCircle, 
   DollarSign, 
   Zap, 
-  User, 
-  Phone, 
-  MapPin, 
-  FileText, 
-  CreditCard, 
   Save, 
   RotateCcw,
-  Bike,
-  FileCheck,
-  Calendar
+  Bike
 } from 'lucide-react';
 import { EveeBike, VehicleStatus, AuthUser } from '../types';
-import { formatCurrency, generateChassisNumber, generateInvoiceNumber } from '../utils/formatters';
-import { loadShopsFromStorage, addShopToStorage, loadCustomModelNames, addCustomModelName, removeCustomModelName } from '../utils/storage';
-import { ShopSelector } from './ShopSelector';
+import { formatCurrency, generateChassisNumber } from '../utils/formatters';
+import { 
+  loadCustomModelNames, 
+  addCustomModelName, 
+  removeCustomModelName,
+  loadCustomCompanyNames,
+  addCustomCompanyName,
+  removeCustomCompanyName
+} from '../utils/storage';
 import { ModelNameSelector } from './ModelNameSelector';
+import { CompanyNameSelector } from './CompanyNameSelector';
 
 interface ProductEntryProps {
   existingBikes: EveeBike[];
@@ -40,20 +39,20 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   currentUser,
 }) => {
   // Check if trying to edit a sold bike
-  const isSoldBike = editingBike && (editingBike.status === 'SOLD_FULL' || editingBike.status === 'SOLD_INSTALLMENT');
+  const isSoldBike = !!(editingBike && (editingBike.status === 'SOLD_FULL' || editingBike.status === 'SOLD_INSTALLMENT'));
   
-  // Shop / Branch State for Sales
-  const [shopName, setShopName] = useState<string>(() => {
-    const saved = loadShopsFromStorage();
-    return saved.length > 0 ? saved[0] : '';
-  });
-
   // Custom Model Names State (loaded from localStorage)
   const [customModelNames, setCustomModelNames] = useState<string[]>(() => 
     loadCustomModelNames(currentUser?.id)
   );
 
-  // Form States - Model Name & Bike Variant
+  // Custom Company Names State (loaded from localStorage)
+  const [customCompanyNames, setCustomCompanyNames] = useState<string[]>(() => 
+    loadCustomCompanyNames(currentUser?.id)
+  );
+
+  // Form States - Company Name & Model Name & Bike Variant
+  const [companyName, setCompanyName] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
   const [customBikeName, setCustomBikeName] = useState<string>('');
   const [chassisNumber, setChassisNumber] = useState<string>('');
@@ -96,6 +95,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   // Initialize or load editing bike
   useEffect(() => {
     if (editingBike) {
+      setCompanyName(editingBike.companyName || '');
       setModelName(editingBike.modelName);
       setCustomBikeName(editingBike.customBikeName || editingBike.modelName);
       setChassisNumber(editingBike.chassisNumber);
@@ -115,10 +115,6 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
         editingBike.documentationReceivedDate || new Date().toISOString().slice(0, 10)
       );
       setDocumentationNotes(editingBike.documentationNotes || '');
-
-      if (editingBike.shopName) {
-        setShopName(editingBike.shopName);
-      }
     } else {
       // If brand new entry and no chassis yet
       if (!chassisNumber) {
@@ -137,6 +133,10 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
   // Validate form
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
+
+    if (!companyName.trim()) {
+      newErrors.companyName = 'Company Name is required';
+    }
 
     if (!modelName.trim()) {
       newErrors.modelName = 'Model Name is required';
@@ -199,6 +199,7 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
     const bikeData: EveeBike = {
       id: bikeId,
       chassisNumber: finalChassis,
+      companyName: companyName.trim(),
       modelName: modelName.trim(),
       customBikeName: customBikeName.trim() || modelName.trim(),
       color: finalColor,
@@ -258,16 +259,41 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
     ].filter(Boolean))
   );
 
+  // Extract distinct companies from existing inventory + custom saved companies for clean auto-complete suggestion
+  const companySuggestions = Array.from(
+    new Set([
+      ...customCompanyNames, // Load saved custom companies first
+      ...existingBikes.map(b => b.companyName).filter(Boolean),
+      'Evee Motors',
+      'Jolta Electric',
+      'Super Asia',
+      'Vlektra',
+      'Daewoo'
+    ].filter(Boolean))
+  );
+
   // Handler to add a new custom model name
   const handleAddCustomModel = (modelName: string) => {
-    const updated = addCustomModelName(modelName, currentUser?.id);
+    const updated = addCustomModelName(modelName, currentUser?.id, currentUser);
     setCustomModelNames(updated);
   };
 
   // Handler to remove a custom model name
   const handleRemoveCustomModel = (modelName: string) => {
-    const updated = removeCustomModelName(modelName, currentUser?.id);
+    const updated = removeCustomModelName(modelName, currentUser?.id, currentUser);
     setCustomModelNames(updated);
+  };
+
+  // Handler to add a new custom company name
+  const handleAddCustomCompany = (companyName: string) => {
+    const updated = addCustomCompanyName(companyName, currentUser?.id, currentUser);
+    setCustomCompanyNames(updated);
+  };
+
+  // Handler to remove a custom company name
+  const handleRemoveCustomCompany = (companyName: string) => {
+    const updated = removeCustomCompanyName(companyName, currentUser?.id, currentUser);
+    setCustomCompanyNames(updated);
   };
 
   return (
@@ -372,6 +398,40 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
 
           {/* Model Name & Bike Variant Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Company Name */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                  <span>Company Name</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] text-slate-400">e.g. Evee Motors, Jolta</span>
+              </div>
+              <CompanyNameSelector
+                currentCompany={companyName}
+                onCompanyChange={(name) => {
+                  setCompanyName(name);
+                  if (errors.companyName) setErrors(prev => ({ ...prev, companyName: '' }));
+                }}
+                availableCompanies={companySuggestions}
+                onAddCompany={handleAddCustomCompany}
+                onRemoveCompany={handleRemoveCustomCompany}
+                disabled={isSoldBike}
+                error={errors.companyName}
+              />
+              {errors.companyName && (
+                <p className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
+                  {errors.companyName}
+                </p>
+              )}
+              {!errors.companyName && (
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Type freely or select from saved companies. Click building icon to manage list.
+                </p>
+              )}
+            </div>
+
             {/* Model Name */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
@@ -405,7 +465,10 @@ export const ProductEntry: React.FC<ProductEntryProps> = ({
                 </p>
               )}
             </div>
+          </div>
 
+          {/* Bike Variant Section */}
+          <div className="grid grid-cols-1 gap-4">
             {/* Bike Variant / Name */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">

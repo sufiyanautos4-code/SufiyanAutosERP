@@ -29,6 +29,7 @@ export const ModelTypes: React.FC<ModelTypesProps> = ({
   // Model variant matrix with color counts per model
   const modelDetailedMatrix = useMemo(() => {
     const map = new Map<string, {
+      companyName: string;
       modelName: string;
       inStock: number;
       sold: number;
@@ -42,8 +43,12 @@ export const ModelTypes: React.FC<ModelTypesProps> = ({
     }>();
 
     bikes.forEach(b => {
-      if (!map.has(b.modelName)) {
-        map.set(b.modelName, {
+      // Create a unique key combining company and model
+      const key = `${b.companyName || 'Unknown'}|${b.modelName}`;
+      
+      if (!map.has(key)) {
+        map.set(key, {
+          companyName: b.companyName || 'Unknown Company',
           modelName: b.modelName,
           inStock: 0,
           sold: 0,
@@ -56,7 +61,7 @@ export const ModelTypes: React.FC<ModelTypesProps> = ({
           stockValue: 0,
         });
       }
-      const item = map.get(b.modelName)!;
+      const item = map.get(key)!;
       item.total += 1;
       if (b.batteryCapacity) item.batteryTypes.add(b.batteryCapacity);
       if (b.motorPowerWatts) item.motorWatts.add(b.motorPowerWatts);
@@ -174,7 +179,7 @@ export const ModelTypes: React.FC<ModelTypesProps> = ({
 
               return (
                 <div 
-                  key={item.modelName}
+                  key={`${item.companyName}-${item.modelName}`}
                   className={`border rounded-xl p-4 transition-all duration-200 flex flex-col justify-between ${
                     isSelected 
                       ? 'border-blue-500 bg-blue-50/20 ring-2 ring-blue-500/20 shadow-sm' 
@@ -185,6 +190,9 @@ export const ModelTypes: React.FC<ModelTypesProps> = ({
                     {/* Card Title & Health */}
                     <div className="flex items-start justify-between gap-2">
                       <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-blue-600 mb-0.5">
+                          {item.companyName}
+                        </div>
                         <h3 className="font-bold text-sm text-slate-900">{item.modelName}</h3>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <span className="text-[11px] text-slate-500">Fleet Acquired:</span>

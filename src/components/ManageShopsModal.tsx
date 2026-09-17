@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Store, Plus, Trash2, Edit2, Check, AlertCircle, Building2 } from 'lucide-react';
+import { AuthUser } from '../types';
 import { loadShopsFromStorage, saveShopsToStorage } from '../utils/storage';
 import {
   subscribeShops,
@@ -12,28 +13,31 @@ interface ManageShopsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onShopsUpdated: (updatedShops: string[]) => void;
+  currentUser?: AuthUser | null;
 }
 
 export const ManageShopsModal: React.FC<ManageShopsModalProps> = ({
   isOpen,
   onClose,
   onShopsUpdated,
+  currentUser,
 }) => {
-  const [shops, setShops] = useState<string[]>(() => loadShopsFromStorage());
+  const [shops, setShops] = useState<string[]>(() => loadShopsFromStorage(currentUser?.id));
   const [newShopName, setNewShopName] = useState<string>('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingText, setEditingText] = useState<string>('');
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    if (!isOpen) return;
-    const unsub = subscribeShops((cloudShops) => {
+    if (!isOpen || !currentUser?.id) return;
+    const unsub = subscribeShops(currentUser.id, (cloudShops: string[]) => {
       if (cloudShops.length > 0) {
         setShops(cloudShops);
+        onShopsUpdated(cloudShops);
       }
     });
     return () => unsub();
-  }, [isOpen]);
+  }, [isOpen, currentUser?.id]);
 
   if (!isOpen) return null;
 
@@ -51,12 +55,12 @@ export const ManageShopsModal: React.FC<ManageShopsModalProps> = ({
 
     const updated = [...shops, trimmed];
     setShops(updated);
-    saveShopsToStorage(updated);
+    saveShopsToStorage(updated, currentUser?.id);
     onShopsUpdated(updated);
     setNewShopName('');
     setError('');
 
-    await addShopToFirestore(trimmed).catch(err => {
+    await addShopToFirestore(trimmed, currentUser).catch(err => {
       console.warn('Firestore add shop error:', err);
     });
   };
@@ -83,13 +87,13 @@ export const ManageShopsModal: React.FC<ManageShopsModalProps> = ({
     const updated = [...shops];
     updated[index] = trimmed;
     setShops(updated);
-    saveShopsToStorage(updated);
+    saveShopsToStorage(updated, currentUser?.id);
     onShopsUpdated(updated);
     setEditingIndex(null);
     setEditingText('');
     setError('');
 
-    await updateShopInFirestore(oldName, trimmed).catch(err => {
+    await updateShopInFirestore(oldName, trimmed, currentUser).catch(err => {
       console.warn('Firestore update shop error:', err);
     });
   };
@@ -99,11 +103,11 @@ export const ManageShopsModal: React.FC<ManageShopsModalProps> = ({
     if (window.confirm(`Delete "${target}" from your saved shops list?`)) {
       const updated = shops.filter((_, idx) => idx !== index);
       setShops(updated);
-      saveShopsToStorage(updated);
+      saveShopsToStorage(updated, currentUser?.id);
       onShopsUpdated(updated);
       setError('');
 
-      await deleteShopFromFirestore(target).catch(err => {
+      await deleteShopFromFirestore(target, currentUser).catch(err => {
         console.warn('Firestore delete shop error:', err);
       });
     }
